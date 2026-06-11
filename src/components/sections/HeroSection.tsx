@@ -4,13 +4,11 @@ import { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import {
-  Maximize2, Plus, Minus, RotateCcw,
-  MessageCircle, ChevronRight,
-  Truck, Leaf, CreditCard, Phone,
-  LayoutGrid, Info, Star, Shield,
+  Eye, EyeOff, Plus, Minus, Share2,
+  Truck, Leaf, Award, Phone,
+  LayoutGrid, Info, Star, Shield, Ruler,
 } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /* ═══════════════════════════════════════════════════════════
    DATA
@@ -19,31 +17,31 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 const CONTENT = {
   "black-dragon": {
     breadcrumb:  "CATALOGUE / BLACK DRAGON",
+    ar:          "التنين الأسود",
     ja:          "黒い龍",
     title:       "BLACK\nDRAGON",
     tagline:     "POWER • MYSTERY • SHADOW",
-    description: "A decorative wooden katana for bold interiors, collectors, anime fans, and gaming setups.",
+    description: "A decorative wooden katana created for bold interiors, collectors, anime fans, and gaming setups. Dark, mysterious, and made to stand out.",
     cta:         "ORDER BLACK DRAGON",
   },
   "white-dragon": {
     breadcrumb:  "CATALOGUE / WHITE DRAGON",
+    ar:          "التنين الأبيض",
     ja:          "白い龍",
     title:       "WHITE\nDRAGON",
     tagline:     "PURE • HONOR • LIGHT",
-    description: "A decorative wooden katana for collectors, anime lovers, and refined room decoration.",
+    description: "A decorative wooden katana designed with a clean, elegant, and premium aesthetic. Made for collectors, anime lovers, and refined room decoration.",
     cta:         "ORDER WHITE DRAGON",
   },
 } as const;
 
-const THUMB_LABELS = ["FULL VIEW", "TSUBA", "HANDLE", "ENGRAVING", "KASHIRA"];
-
 const FEATURES = [
-  { Icon: Leaf,         label: "MATERIAL",  value: "Decorative Wood"       },
-  { Icon: Shield,       label: "PURPOSE",   value: "Decoration Only"       },
-  { Icon: Truck,        label: "DELIVERY",  value: "Free Across Morocco"   },
-  { Icon: CreditCard,   label: "PAYMENT",   value: "No Online Payment"     },
-  { Icon: Phone,        label: "ORDER VIA", value: "WhatsApp / Contact"    },
-  { Icon: Star,         label: "MODELS",    value: "Black & White Dragon"  },
+  { Icon: Leaf,   label: "MATERIAL", value: "Decorative Wood"  },
+  { Icon: Shield, label: "PURPOSE",  value: "Display Only"     },
+  { Icon: Ruler,  label: "LENGTH",   value: "103 cm"           },
+  { Icon: Star,   label: "FINISH",   value: "Lacquered Detail" },
+  { Icon: Award,  label: "EDITION",  value: "Black Dragon"     },
+  { Icon: Truck,  label: "DELIVERY", value: "Across Morocco"   },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -62,80 +60,6 @@ const fadeUp: Variants = {
 /* ═══════════════════════════════════════════════════════════
    SUB-COMPONENTS
 ═══════════════════════════════════════════════════════════ */
-
-/**
- * Katana silhouette placeholder.
- * TODO: Replace the inner div with:
- *   <img
- *     src="/images/products/black-dragon/full-view-1.png"  (or white-dragon PNG when available)
- *     style={{ height, width: "auto", objectFit: "contain" }}
- *     alt="..."
- *   />
- */
-function KatanaPlaceholder({
-  isBlack,
-  height = "clamp(300px,50svh,510px)",
-}: {
-  isBlack: boolean;
-  height?: string;
-}) {
-  const g = (a: number) => `rgba(185,154,91,${a})`;
-  return (
-    <div style={{ position: "relative", width: 80, height }}>
-      {/* Vertical body */}
-      <div
-        style={{
-          position: "absolute",
-          left: "50%", transform: "translateX(-50%)",
-          top: 0, bottom: 0, width: 42,
-          borderRadius: "4px 4px 6px 6px",
-          background: isBlack
-            ? `linear-gradient(180deg,${g(.56)} 0%,${g(.28)} 30%,${g(.36)} 100%)`
-            : `linear-gradient(180deg,${g(.84)} 0%,${g(.50)} 30%,${g(.64)} 100%)`,
-          boxShadow: isBlack
-            ? `0 20px 64px rgba(0,0,0,.62),0 0 20px ${g(.14)}`
-            : `0 20px 48px rgba(120,90,40,.26),0 0 24px ${g(.22)}`,
-        }}
-      >
-        {/* Handle cross-wrap lines (top 23%) */}
-        {[6,9,12,15,18,21].map((pct) => (
-          <div key={pct} aria-hidden style={{
-            position: "absolute",
-            top: `${pct}%`, left: 4, right: 4, height: 1,
-            background: g(isBlack ? .38 : .55),
-            transform: `rotate(${pct % 2 === 0 ? 12 : -12}deg)`,
-          }} />
-        ))}
-        {/* Dragon engraving suggestion */}
-        <div aria-hidden style={{
-          position: "absolute",
-          top: "38%", bottom: "20%",
-          left: "18%", right: "18%",
-          borderLeft: `1px solid ${g(isBlack ? .44 : .62)}`,
-          borderRight: `1px solid ${g(isBlack ? .32 : .48)}`,
-          transform: "skewX(-5deg)",
-          opacity: .85,
-        }} />
-        <div aria-hidden style={{
-          position: "absolute",
-          top: "38%", bottom: "20%",
-          left: "35%", right: "35%",
-          borderLeft: `1px solid ${g(isBlack ? .34 : .50)}`,
-          opacity: .6,
-        }} />
-      </div>
-      {/* Tsuba guard at ~23% from top */}
-      <div aria-hidden style={{
-        position: "absolute",
-        top: "23%", left: "50%",
-        transform: "translateX(-50%) translateY(-50%)",
-        width: 78, height: 14, borderRadius: 999,
-        background: `radial-gradient(ellipse at center,${g(isBlack ? .72 : .94)} 0%,${g(isBlack ? .42 : .64)} 100%)`,
-        boxShadow: `0 2px 10px ${g(isBlack ? .32 : .42)}`,
-      }} />
-    </div>
-  );
-}
 
 function PlatformRings({ isBlack }: { isBlack: boolean }) {
   void isBlack;
@@ -163,22 +87,34 @@ function PlatformRings({ isBlack }: { isBlack: boolean }) {
   );
 }
 
-function SideControls({ glassBg }: { glassBg: string }) {
+function SideControls({
+  glassBg, onFocus, onZoomIn, onZoomOut, onShare, isFocusMode,
+}: {
+  glassBg: string;
+  onFocus:     () => void;
+  onZoomIn:    () => void;
+  onZoomOut:   () => void;
+  onShare:     () => void;
+  isFocusMode: boolean;
+}) {
+  const FocusIcon = isFocusMode ? EyeOff : Eye;
+  const buttons = [
+    { Icon: FocusIcon, label: "Focus view", handler: onFocus,   active: isFocusMode },
+    { Icon: Plus,      label: "Zoom in",    handler: onZoomIn,  active: false       },
+    { Icon: Minus,     label: "Zoom out",   handler: onZoomOut, active: false       },
+    { Icon: Share2,    label: "Share",      handler: onShare,   active: false       },
+  ];
   return (
     <>
-      {([
-        [Maximize2, "Expand view"],
-        [Plus,      "Zoom in"   ],
-        [Minus,     "Zoom out"  ],
-        [RotateCcw, "Rotate"    ],
-      ] as const).map(([Icon, label]) => (
+      {buttons.map(({ Icon, label, handler, active }) => (
         <button
           key={label}
           aria-label={label}
+          onClick={handler}
           style={{
             width: 44, height: 44, borderRadius: "50%",
-            border: "1px solid rgba(185,154,91,.36)",
-            backgroundColor: glassBg,
+            border: `1px solid ${active ? "var(--gold)" : "rgba(185,154,91,.36)"}`,
+            backgroundColor: active ? "rgba(185,154,91,.18)" : glassBg,
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
             color: "var(--gold)",
@@ -188,12 +124,12 @@ function SideControls({ glassBg }: { glassBg: string }) {
           onMouseEnter={(e) => {
             const el = e.currentTarget;
             el.style.borderColor = "var(--gold)";
-            el.style.backgroundColor = "rgba(185,154,91,.16)";
+            el.style.backgroundColor = "rgba(185,154,91,.18)";
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget;
-            el.style.borderColor = "rgba(185,154,91,.36)";
-            el.style.backgroundColor = glassBg;
+            el.style.borderColor = active ? "var(--gold)" : "rgba(185,154,91,.36)";
+            el.style.backgroundColor = active ? "rgba(185,154,91,.18)" : glassBg;
           }}
         >
           <Icon size={14} strokeWidth={1.5} />
@@ -203,65 +139,42 @@ function SideControls({ glassBg }: { glassBg: string }) {
   );
 }
 
-function DragPill({ glassBg }: { glassBg: string }) {
-  return (
-    <div style={{
-      display: "inline-flex", alignItems: "center", gap: 8,
-      height: 44, padding: "0 20px", borderRadius: 999,
-      border: "1px solid rgba(185,154,91,.40)",
-      backgroundColor: glassBg,
-      backdropFilter: "blur(12px)",
-      WebkitBackdropFilter: "blur(12px)",
-      color: "var(--text-muted)",
-      fontSize: ".6rem", letterSpacing: ".22em",
-      textTransform: "uppercase" as const,
-      whiteSpace: "nowrap" as const,
-      cursor: "default",
-    }}>
-      <span style={{ fontSize: "1rem", lineHeight: 1 }}>☞</span>
-      DRAG TO ROTATE
-    </div>
-  );
-}
-
-function InteractiveLabel() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-      <p style={{ fontSize: ".8rem", letterSpacing: ".06em", color: "var(--gold)", opacity: .82, lineHeight: 1 }}>
-        360°
-      </p>
-      <p style={{ fontSize: ".5rem", letterSpacing: ".28em", textTransform: "uppercase", color: "var(--text-muted)", opacity: .62, lineHeight: 1 }}>
-        INTERACTIVE VIEW
-      </p>
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════ */
 
-export default function HeroSection() {
+export default function HeroSection({ heroImageUrl = null }: { heroImageUrl?: string | null }) {
   const { theme } = useTheme();
   const isBlack = theme === "black-dragon";
   const c = CONTENT[theme];
-  const [activeThumb, setActiveThumb] = useState(0);
+  const [zoom, setZoom]               = useState(1.0);
+  const [isFocusMode, setIsFocusMode] = useState(false);
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "212XXXXXXXXX";
-  const whatsappHref   = `https://wa.me/${whatsappNumber.replace(/\D/g, "")}`;
+  const zoomIn      = () => setZoom((z) => Math.min(+(z + 0.15).toFixed(2), 1.6));
+  const zoomOut     = () => setZoom((z) => Math.max(+(z - 0.15).toFixed(2), 0.7));
+  const toggleFocus = () => setIsFocusMode((f) => !f);
+  const onShare     = async () => {
+    const url = `${window.location.origin}/product/${theme}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Nakama Store Morocco", text: c.title.replace("\n", " "), url });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+    } catch { /* user cancelled */ }
+  };
 
   const glassBg  = isBlack ? "rgba(5,5,5,.52)"         : "rgba(247,242,232,.62)";
   const textShadow = isBlack ? "0 2px 20px rgba(0,0,0,.85)" : "0 1px 12px rgba(247,242,232,.6)";
 
   const mobileOverlay = isBlack
-    ? "linear-gradient(180deg,rgba(5,5,5,.20) 0%,rgba(5,5,5,.55) 45%,rgba(5,5,5,.96) 100%)"
-    : "linear-gradient(180deg,rgba(247,242,232,.15) 0%,rgba(247,242,232,.35) 42%,rgba(247,242,232,.90) 100%)";
+    ? "linear-gradient(180deg,rgba(8,8,8,.14) 0%,rgba(8,8,8,.38) 50%,rgba(8,8,8,.82) 100%)"
+    : "linear-gradient(180deg,rgba(248,243,235,.12) 0%,rgba(248,243,235,.32) 50%,rgba(248,243,235,.80) 100%)";
 
   const desktopOverlay = isBlack
-    ? "linear-gradient(90deg,rgba(5,5,5,.92) 0%,rgba(5,5,5,.62) 32%,rgba(5,5,5,.20) 68%,rgba(5,5,5,.05) 100%)"
-    : "linear-gradient(90deg,rgba(247,242,232,.88) 0%,rgba(247,242,232,.52) 32%,rgba(247,242,232,.10) 68%,rgba(247,242,232,.00) 100%)";
-
-  const featureBg = isBlack ? "rgba(17,17,17,.82)" : "rgba(239,230,215,.65)";
+    ? "linear-gradient(90deg,rgba(8,8,8,.82) 0%,rgba(8,8,8,.46) 38%,rgba(8,8,8,.12) 100%)"
+    : "linear-gradient(90deg,rgba(248,243,235,.72) 0%,rgba(248,243,235,.36) 38%,rgba(248,243,235,.06) 100%)";
 
   return (
     <div style={{ backgroundColor: "var(--bg)" }}>
@@ -281,7 +194,8 @@ export default function HeroSection() {
           <picture style={{ display: "block", position: "absolute", inset: 0 }}>
             <source media="(min-width:768px)" srcSet="/images/hero/hero-black-desktop.png" />
             <img src="/images/hero/hero-black-mobile.png" alt="" fetchPriority="high"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }} />
+              className="hero-bg-img"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           </picture>
         </div>
         <div aria-hidden className="absolute inset-0 pointer-events-none"
@@ -289,7 +203,8 @@ export default function HeroSection() {
           <picture style={{ display: "block", position: "absolute", inset: 0 }}>
             <source media="(min-width:768px)" srcSet="/images/hero/hero-white-desktop.png" />
             <img src="/images/hero/hero-white-mobile.png" alt="" fetchPriority="high"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }} />
+              className="hero-bg-img"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           </picture>
         </div>
 
@@ -330,11 +245,19 @@ export default function HeroSection() {
               initial="hidden"
               animate="visible"
               className="absolute z-20"
-              style={{ top: 12, left: 20, maxWidth: "clamp(180px,60vw,240px)" }}
+              style={{ top: 12, left: 20, maxWidth: "min(52vw, 220px)", textAlign: "left" }}
             >
+              {/* Arabic decorative label */}
               <motion.p variants={fadeUp}
-                className="text-[.88rem] tracking-[.45em] mb-1"
-                style={{ color: "var(--gold)", textShadow }}
+                className="arabic-kicker"
+                style={{ fontSize: "clamp(1.15rem,5vw,1.55rem)", marginBottom: "0.25rem", textShadow }}
+              >
+                {c.ar}
+              </motion.p>
+              {/* Japanese label */}
+              <motion.p variants={fadeUp}
+                className="text-[.72rem] tracking-[.32em] mb-1"
+                style={{ color: "var(--gold)", opacity: 0.72, textShadow }}
               >
                 {c.ja}
               </motion.p>
@@ -363,12 +286,28 @@ export default function HeroSection() {
               >
                 {c.description}
               </motion.p>
+              <motion.div variants={fadeUp} style={{ marginTop: "0.75rem" }}>
+                <Link
+                  href={`/product/${theme}`}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    padding: "7px 14px", borderRadius: 6,
+                    border: "1px solid rgba(185,154,91,0.50)",
+                    color: "var(--gold)",
+                    fontSize: "0.54rem", letterSpacing: "0.2em", textTransform: "uppercase",
+                    backgroundColor: "rgba(185,154,91,0.08)",
+                    backdropFilter: "blur(4px)",
+                  }}
+                >
+                  GET YOURS →
+                </Link>
+              </motion.div>
             </motion.div>
 
-            {/* Product zone — centered, leaves room at bottom for pill/label */}
+            {/* Product zone — centered */}
             <div
               className="absolute inset-0 flex flex-col items-center justify-center"
-              style={{ paddingBottom: 108 }}
+              style={{ paddingBottom: 64 }}
             >
               <motion.div
                 key={`mob-prod-${theme}`}
@@ -377,8 +316,24 @@ export default function HeroSection() {
                 transition={{ duration: 1.2, ease: "easeOut", delay: .3 }}
                 className="flex flex-col items-center"
               >
-                <KatanaPlaceholder isBlack={isBlack} />
-                <div style={{ marginTop: -12 }}>
+                {heroImageUrl && isBlack && (
+                  <motion.img
+                    src={heroImageUrl}
+                    alt="Black Dragon Katana"
+                    fetchPriority="high"
+                    animate={{ scale: zoom }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    style={{
+                      height: "clamp(360px, 58svh, 620px)",
+                      width: "auto",
+                      maxWidth: "min(62vw, 320px)",
+                      objectFit: "contain",
+                      display: "block",
+                      filter: "drop-shadow(0 28px 64px rgba(0,0,0,0.68)) drop-shadow(0 0 22px rgba(185,154,91,0.12))",
+                    }}
+                  />
+                )}
+                <div style={{ marginTop: heroImageUrl && isBlack ? -12 : 0 }}>
                   <PlatformRings isBlack={isBlack} />
                 </div>
               </motion.div>
@@ -389,23 +344,14 @@ export default function HeroSection() {
               className="absolute z-30 flex flex-col gap-3"
               style={{ right: 14, top: "50%", transform: "translateY(-50%)" }}
             >
-              <SideControls glassBg={glassBg} />
-            </div>
-
-            {/* Drag-to-rotate pill */}
-            <div
-              className="absolute z-30"
-              style={{ bottom: 58, left: "50%", transform: "translateX(-50%)" }}
-            >
-              <DragPill glassBg={glassBg} />
-            </div>
-
-            {/* 360° label */}
-            <div
-              className="absolute z-30"
-              style={{ bottom: 14, left: "50%", transform: "translateX(-50%)" }}
-            >
-              <InteractiveLabel />
+              <SideControls
+                glassBg={glassBg}
+                onFocus={toggleFocus}
+                onZoomIn={zoomIn}
+                onZoomOut={zoomOut}
+                onShare={onShare}
+                isFocusMode={isFocusMode}
+              />
             </div>
 
           </div>
@@ -416,7 +362,7 @@ export default function HeroSection() {
           <div
             className="hidden md:grid"
             style={{
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns: "minmax(280px,0.85fr) minmax(360px,1fr) minmax(300px,0.9fr)",
               height: "calc(100svh - 76px - 36px)",
               alignItems: "center",
             }}
@@ -433,11 +379,22 @@ export default function HeroSection() {
                 paddingLeft: "clamp(40px,6vw,88px)",
                 paddingRight: 24,
                 alignSelf: "center",
+                opacity: isFocusMode ? 0 : 1,
+                pointerEvents: isFocusMode ? "none" : "auto",
+                transition: "opacity 0.4s ease",
               }}
             >
+              {/* Arabic decorative label */}
               <motion.p variants={fadeUp}
-                className="text-[.9rem] tracking-[.45em]"
-                style={{ color: "var(--gold)", textShadow }}
+                className="arabic-kicker"
+                style={{ fontSize: "clamp(1.25rem,2vw,1.9rem)", marginBottom: "-0.5rem", textShadow }}
+              >
+                {c.ar}
+              </motion.p>
+              {/* Japanese label */}
+              <motion.p variants={fadeUp}
+                className="text-[.78rem] tracking-[.38em]"
+                style={{ color: "var(--gold)", opacity: 0.68, textShadow }}
               >
                 {c.ja}
               </motion.p>
@@ -471,6 +428,32 @@ export default function HeroSection() {
               >
                 {c.description}
               </motion.p>
+              <motion.div variants={fadeUp}>
+                <Link
+                  href={`/product/${theme}`}
+                  className="inline-flex items-center gap-2 transition-all duration-300"
+                  style={{
+                    height: 44, padding: "0 24px", borderRadius: 8,
+                    border: "1px solid rgba(185,154,91,0.50)",
+                    color: "var(--gold)",
+                    fontSize: "0.62rem", letterSpacing: "0.18em", textTransform: "uppercase",
+                    backgroundColor: "rgba(185,154,91,0.08)",
+                    backdropFilter: "blur(6px)",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.backgroundColor = "rgba(185,154,91,0.20)";
+                    el.style.borderColor = "rgba(185,154,91,0.80)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.backgroundColor = "rgba(185,154,91,0.08)";
+                    el.style.borderColor = "rgba(185,154,91,0.50)";
+                  }}
+                >
+                  GET YOURS →
+                </Link>
+              </motion.div>
               <motion.p variants={fadeUp}
                 className="text-[.58rem] tracking-[.14em] uppercase"
                 style={{ color: "var(--text-muted)", opacity: .5 }}
@@ -479,7 +462,7 @@ export default function HeroSection() {
               </motion.p>
             </motion.div>
 
-            {/* Center: Product stage — full column height for absolute positioning */}
+            {/* Center: Product stage */}
             <div
               className="flex flex-col items-center justify-center"
               style={{ alignSelf: "stretch", position: "relative" }}
@@ -491,26 +474,116 @@ export default function HeroSection() {
                 transition={{ duration: 1.2, ease: "easeOut", delay: .35 }}
                 className="flex flex-col items-center"
               >
-                <KatanaPlaceholder isBlack={isBlack} height="clamp(400px,68vh,700px)" />
-                <div style={{ marginTop: -12 }}>
+                {heroImageUrl && isBlack && (
+                  <motion.img
+                    src={heroImageUrl}
+                    alt="Black Dragon Katana"
+                    fetchPriority="high"
+                    animate={{ scale: zoom }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    style={{
+                      height: "clamp(480px, 74vh, 820px)",
+                      width: "auto",
+                      maxWidth: "min(44vw, 560px)",
+                      objectFit: "contain",
+                      display: "block",
+                      transformOrigin: "center center",
+                      filter: isBlack
+                        ? "drop-shadow(0 36px 80px rgba(0,0,0,0.68)) drop-shadow(0 0 32px rgba(185,154,91,0.13))"
+                        : "drop-shadow(0 28px 60px rgba(95,65,30,0.24)) drop-shadow(0 0 26px rgba(185,154,91,0.18))",
+                    }}
+                  />
+                )}
+                <div style={{ marginTop: heroImageUrl && isBlack ? -12 : 0 }}>
                   <PlatformRings isBlack={isBlack} />
                 </div>
               </motion.div>
-
-              {/* Drag pill + label inline below product */}
-              <div style={{ height: 28 }} />
-              <DragPill glassBg={glassBg} />
-              <div style={{ height: 10 }} />
-              <InteractiveLabel />
             </div>
 
-            {/* Right: Side controls */}
-            <div
-              className="flex flex-col gap-4"
-              style={{ paddingLeft: 32, alignSelf: "center" }}
+            {/* Right: Interactive discovery panel */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.75, delay: 0.4 }}
+              style={{
+                paddingLeft: 24,
+                paddingRight: "clamp(24px,4vw,56px)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.4rem",
+                alignSelf: "center",
+              }}
             >
-              <SideControls glassBg={glassBg} />
-            </div>
+              {/* View controls — always visible */}
+              <div>
+                <p style={{ color: "var(--gold)", fontSize: "0.46rem", letterSpacing: "0.32em", textTransform: "uppercase", opacity: 0.6, marginBottom: "0.75rem" }}>
+                  VIEW CONTROLS
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <SideControls
+                    glassBg={glassBg}
+                    onFocus={toggleFocus}
+                    onZoomIn={zoomIn}
+                    onZoomOut={zoomOut}
+                    onShare={onShare}
+                    isFocusMode={isFocusMode}
+                  />
+                </div>
+              </div>
+
+              {/* Everything below fades out in focus mode */}
+              <div style={{
+                opacity: isFocusMode ? 0 : 1,
+                pointerEvents: isFocusMode ? "none" : "auto",
+                transition: "opacity 0.4s ease",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.4rem",
+              }}>
+                {/* Divider */}
+                <div style={{ height: 1, backgroundColor: "rgba(185,154,91,0.16)" }} />
+
+                {/* Price */}
+                <div>
+                  <p style={{ color: "var(--gold)", fontSize: "0.46rem", letterSpacing: "0.28em", textTransform: "uppercase", opacity: 0.65, marginBottom: "0.35rem" }}>
+                    STARTING FROM
+                  </p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                    <span className="font-heading" style={{ fontSize: "2.4rem", color: "var(--text)", lineHeight: 1 }}>1,399</span>
+                    <span style={{ color: "var(--gold)", fontSize: "0.58rem", letterSpacing: "0.22em" }}>DH</span>
+                  </div>
+                </div>
+
+                {/* Key specs bullets */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[
+                    "103 cm · Decorative Wood",
+                    "Free delivery · All Morocco",
+                    "Cash on delivery",
+                  ].map((spec) => (
+                    <div key={spec} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: 3, height: 3, borderRadius: "50%", backgroundColor: "var(--gold)", opacity: 0.55, flexShrink: 0 }} />
+                      <span style={{ color: "var(--text-muted)", fontSize: "0.72rem", lineHeight: 1.4 }}>{spec}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <Link
+                  href={`/product/${theme}`}
+                  className="inline-flex items-center justify-center gap-2 transition-all duration-300"
+                  style={{
+                    height: 44, padding: "0 20px", borderRadius: 8,
+                    backgroundColor: "var(--gold)", color: "var(--bg)",
+                    fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600,
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+                >
+                  GET YOURS →
+                </Link>
+              </div>
+            </motion.div>
 
           </div>
 
@@ -518,185 +591,91 @@ export default function HeroSection() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          THUMBNAIL CAROUSEL
-      ═══════════════════════════════════════════════════════════ */}
-      <section
-        id="thumbnails"
-        className="relative z-10 px-5 md:px-10 pt-6 pb-4"
-        style={{ backgroundColor: "var(--bg)" }}
-      >
-        <div
-          className="flex gap-3 overflow-x-auto pb-1 scrollbar-none md:gap-4"
-        >
-          {THUMB_LABELS.map((label, i) => (
-            <button
-              key={label}
-              onClick={() => setActiveThumb(i)}
-              className="flex-shrink-0 flex flex-col items-center gap-2 transition-all duration-300"
-            >
-              {/* Thumbnail placeholder box
-                  TODO: Replace inner div with:
-                  <img src={`/images/products/black-dragon/${label.toLowerCase().replace(" ","-")}.png`}
-                       style={{ width:80, height:106, objectFit:"cover", borderRadius:10 }} />
-              */}
-              <div style={{
-                width: 80, height: 106, borderRadius: 10,
-                border: activeThumb === i
-                  ? "1.5px solid var(--gold)"
-                  : "1px solid rgba(185,154,91,.22)",
-                backgroundColor: isBlack ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all .3s ease",
-              }}>
-                <div style={{
-                  width: 26, height: 70, borderRadius: 3,
-                  background: `rgba(185,154,91,${activeThumb === i
-                    ? (isBlack ? .55 : .78)
-                    : (isBlack ? .22 : .38)})`,
-                  transition: "background .3s",
-                }} />
-              </div>
-              <span
-                className="text-[.52rem] tracking-[.22em] uppercase"
-                style={{
-                  color: activeThumb === i ? "var(--gold)" : "var(--text-muted)",
-                  transition: "color .3s",
-                }}
-              >
-                {label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          FEATURES CARD + ORDER BUTTONS
+          SPECIFICATIONS STRIP
       ═══════════════════════════════════════════════════════════ */}
       <section
         id="features"
-        className="relative z-10 px-5 md:px-10 pb-32 md:pb-16"
+        className="relative z-10 pb-24 md:pb-12"
         style={{ backgroundColor: "var(--bg)" }}
       >
-        <div
-          className="rounded-2xl p-5 md:p-8"
-          style={{
-            border: "1px solid rgba(185,154,91,.22)",
-            backgroundColor: featureBg,
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          {/* Heading */}
+        {/* Top rule */}
+        <div style={{ height: 1, backgroundColor: "rgba(185,154,91,0.18)" }} />
+
+        <div className="px-5 md:px-10 pt-7 pb-8">
+          {/* Section label */}
           <p
-            className="text-center text-[.62rem] tracking-[.3em] uppercase mb-5"
-            style={{ color: "var(--gold)" }}
+            className="text-center text-[.48rem] tracking-[.42em] uppercase mb-8"
+            style={{ color: "var(--gold)", opacity: 0.58, letterSpacing: "0.42em" }}
           >
-            FEATURES
+            SPECIFICATIONS
           </p>
 
-          {/* 2-col on mobile, 3-col on desktop */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-3">
-            {FEATURES.map(({ Icon, label, value }) => (
-              <div key={label} className="flex items-start gap-3">
-                <div style={{
-                  width: 30, height: 30, borderRadius: 6, flexShrink: 0,
-                  border: "1px solid rgba(185,154,91,.28)",
-                  backgroundColor: isBlack ? "rgba(185,154,91,.08)" : "rgba(185,154,91,.14)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginTop: 2,
+          {/* Feature grid — 2 col mobile → 3 col md → 6 col lg */}
+          <div
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
+            style={{ gap: 0 }}
+          >
+            {FEATURES.map(({ Icon, label, value }, i) => (
+              <div
+                key={label}
+                className="flex flex-col items-center text-center"
+                style={{
+                  padding: "clamp(1rem,2vw,1.4rem) clamp(0.5rem,1.5vw,1rem)",
+                  borderRight: "1px solid rgba(185,154,91,0.11)",
+                  borderBottom: "1px solid rgba(185,154,91,0.11)",
+                }}
+              >
+                {/* Icon circle */}
+                <div
+                  style={{
+                    width: 40, height: 40, borderRadius: "50%",
+                    border: "1px solid rgba(185,154,91,0.28)",
+                    background: isBlack
+                      ? "radial-gradient(circle at center, rgba(185,154,91,0.10) 0%, transparent 70%)"
+                      : "radial-gradient(circle at center, rgba(185,154,91,0.16) 0%, transparent 70%)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    marginBottom: "0.65rem",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon size={14} strokeWidth={1.5} style={{ color: "var(--gold)" }} />
+                </div>
+
+                {/* Label */}
+                <p style={{
+                  color: "var(--gold)",
+                  fontSize: "0.46rem",
+                  letterSpacing: "0.3em",
+                  textTransform: "uppercase",
+                  opacity: 0.72,
+                  marginBottom: "0.3rem",
+                  lineHeight: 1,
                 }}>
-                  <Icon size={13} strokeWidth={1.5} style={{ color: "var(--gold)" }} />
-                </div>
-                <div>
-                  <p className="text-[.58rem] tracking-[.18em] uppercase font-medium"
-                    style={{ color: "var(--gold)", opacity: .88 }}>
-                    {label}
-                  </p>
-                  <p className="text-[.78rem] leading-snug mt-0.5"
-                    style={{ color: "var(--text-muted)" }}>
-                    {value}
-                  </p>
-                </div>
+                  {label}
+                </p>
+
+                {/* Value */}
+                <p style={{
+                  color: "var(--text-muted)",
+                  fontSize: "0.78rem",
+                  lineHeight: 1.25,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {value}
+                </p>
               </div>
             ))}
           </div>
-
-          {/* Divider */}
-          <div className="my-5 h-px" style={{ backgroundColor: "rgba(185,154,91,.18)" }} />
-
-          {/* Safety note */}
-          <p className="text-center text-[.56rem] tracking-[.14em] uppercase mb-4"
-            style={{ color: "var(--text-muted)", opacity: .5 }}>
-            MADE OF WOOD · FOR DECORATION ONLY · NOT FOR COMBAT USE
-          </p>
-
-          {/* Price */}
-          <div className="flex items-baseline justify-center gap-1.5 mb-5">
-            <span className="font-heading" style={{
-              fontSize: "2.1rem", letterSpacing: ".02em", color: "var(--text)",
-            }}>
-              1,399
-            </span>
-            <span className="text-[.6rem] tracking-[.2em] uppercase" style={{ color: "var(--gold)" }}>
-              DH
-            </span>
-          </div>
-
-          {/* Order buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="#order"
-              className="flex flex-1 items-center justify-center gap-1.5 uppercase tracking-[.16em] text-[.68rem] font-medium transition-all duration-300"
-              style={{
-                height: 52, borderRadius: 6,
-                border: "1px solid var(--gold)",
-                color: "var(--gold)",
-                backgroundColor: "transparent",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.backgroundColor = "var(--gold)";
-                el.style.color = "var(--bg)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.backgroundColor = "transparent";
-                el.style.color = "var(--gold)";
-              }}
-            >
-              {c.cta}
-              <ChevronRight size={13} strokeWidth={1.5} />
-            </Link>
-
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-1 items-center justify-center gap-2 uppercase tracking-[.16em] text-[.68rem] transition-all duration-300"
-              style={{
-                height: 52, borderRadius: 6,
-                backgroundColor: "var(--gold)",
-                color: "var(--bg)",
-                border: "1px solid var(--gold)",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.08)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
-            >
-              <MessageCircle size={13} />
-              ORDER ON WHATSAPP
-            </a>
-          </div>
-
-          {/* Theme toggle */}
-          <div className="flex flex-col items-center gap-1.5 mt-5">
-            <p className="text-[.52rem] tracking-[.28em] uppercase"
-              style={{ color: "var(--text-muted)", opacity: .45 }}>
-              SWITCH THEME
-            </p>
-            <ThemeToggle />
-          </div>
-
         </div>
+
+        {/* Bottom rule + footnote */}
+        <div style={{ height: 1, backgroundColor: "rgba(185,154,91,0.12)" }} />
+        <p
+          className="text-center text-[.46rem] tracking-[.18em] uppercase mt-4"
+          style={{ color: "var(--text-muted)", opacity: 0.38 }}
+        >
+          MADE OF WOOD · FOR DECORATION ONLY
+        </p>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -716,10 +695,10 @@ export default function HeroSection() {
       >
         <div className="flex">
           {([
-            [LayoutGrid, "Catalogue", "#catalogue"],
-            [Info,       "About",     "#about"    ],
-            [Star,       "Quality",   "#quality"  ],
-            [Phone,      "Contact",   "#contact"  ],
+            [LayoutGrid, "Catalogue", "/catalogue"],
+            [Info,       "About",     "/about"    ],
+            [Star,       "Quality",   "/quality"  ],
+            [Phone,      "Contact",   "/contact"  ],
           ] as const).map(([Icon, label, href]) => (
             <Link
               key={label}

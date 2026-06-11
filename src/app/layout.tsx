@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, Inter } from "next/font/google";
+import { Cinzel, Inter, Katibeh } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import Navbar from "@/components/layout/Navbar";
@@ -16,6 +16,13 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+});
+
+const katibeh = Katibeh({
+  subsets: ["arabic"],
+  variable: "--font-arabic-calligraphy",
+  display: "swap",
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -49,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       data-theme="black-dragon"
       suppressHydrationWarning
-      className={`${cinzel.variable} ${inter.variable}`}
+      className={`${cinzel.variable} ${inter.variable} ${katibeh.variable}`}
     >
       <head>
         {/* Anti-flicker: set theme before first paint */}

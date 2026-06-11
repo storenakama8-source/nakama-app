@@ -14,6 +14,7 @@
   --font-mono:        var(--font-geist-mono);
   --font-heading:     var(--font-cinzel);
   --font-body:        var(--font-inter);
+  --font-arabic:      var(--font-arabic-calligraphy);
   --color-gold:       var(--gold);
   --color-gold-soft:  var(--gold-soft);
   --color-ember:      var(--ember);
@@ -129,30 +130,31 @@
   --bg-soft:    #FBF7EF;
   --surface:    #EFE6D7;
   --surface-2:  #E8DCC9;
-  --text:       #2D261F;
-  --text-muted: #7E7164;
-  --gold:       #B99A5B;
-  --gold-soft:  #D6B36A;
+  --text:       #b58a45;       /* gold/bronze headings */
+  --text-body:  #6f5e4a;       /* warm brown for body copy */
+  --text-muted: #8a7a68;
+  --gold:       #b8914f;
+  --gold-soft:  #c9a462;
   --ember:      #A85A2A;
 
   /* shadcn compat */
   --background:         #F7F2E8;
-  --foreground:         #2D261F;
+  --foreground:         #b58a45;
   --card:               #EFE6D7;
-  --card-foreground:    #2D261F;
+  --card-foreground:    #6f5e4a;
   --popover:            #EFE6D7;
-  --popover-foreground: #2D261F;
-  --primary:            #B99A5B;
+  --popover-foreground: #6f5e4a;
+  --primary:            #b8914f;
   --primary-foreground: #F7F2E8;
   --secondary:          #E8DCC9;
-  --secondary-foreground: #2D261F;
+  --secondary-foreground: #6f5e4a;
   --muted:              #E8DCC9;
-  --muted-foreground:   #7E7164;
+  --muted-foreground:   #8a7a68;
   --accent:             #EFE6D7;
-  --accent-foreground:  #2D261F;
-  --border:             #D8CBB8;
+  --accent-foreground:  #6f5e4a;
+  --border:             rgba(184,145,79,0.28);
   --input:              #D8CBB8;
-  --ring:               #B99A5B;
+  --ring:               #b8914f;
 }
 
 /* ============================================================
@@ -189,13 +191,37 @@
    NAKAMA BUTTON UTILITIES
 ============================================================ */
 @layer utilities {
-  /* Hero background image: anchor top on mobile (portrait), center on desktop (landscape) */
+  /* Hero background image: top on mobile, centered on desktop */
   .hero-bg-img {
-    object-position: top center;
+    object-position: center top;
   }
   @media (min-width: 768px) {
     .hero-bg-img {
-      object-position: right center;
+      object-position: center center;
+    }
+  }
+
+  /* Arabic decorative kicker label — Katibeh calligraphic style */
+  .arabic-kicker {
+    font-family: var(--font-arabic-calligraphy), serif;
+    direction: rtl;
+    unicode-bidi: isolate;
+    color: var(--gold);
+    letter-spacing: 0;
+    font-weight: 400;
+    opacity: 0.94;
+    line-height: 1;
+    text-shadow: 0 1px 12px rgba(184,145,79,0.18);
+  }
+
+  /* Product page responsive grid */
+  .product-grid-mobile {
+    grid-template-columns: minmax(280px,0.9fr) minmax(320px,1fr) minmax(260px,0.75fr);
+  }
+  @media (max-width: 860px) {
+    .product-grid-mobile {
+      grid-template-columns: 1fr !important;
+      padding-bottom: clamp(130px,15vh,150px) !important;
     }
   }
 

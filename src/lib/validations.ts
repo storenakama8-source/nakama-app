@@ -16,3 +16,15 @@ export const orderSchema = z.object({
 });
 
 export type OrderSchema = z.infer<typeof orderSchema>;
+
+/** Checkout-specific schema (no email, adds quantity) */
+export const checkoutSchema = z.object({
+  model:    z.enum(["black-dragon", "white-dragon"]),
+  quantity: z.number().int().min(1).max(20),
+  fullName: z.string().min(2, "Full name is required."),
+  phone:    z.string().min(9, "Valid phone number required.").regex(/^[0-9+\s\-()]+$/, "Invalid number."),
+  city:     z.string().min(2, "City is required."),
+  address:  z.string().min(5, "Full address is required."),
+});
+
+export type CheckoutSchema = z.infer<typeof checkoutSchema>;

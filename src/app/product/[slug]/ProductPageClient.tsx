@@ -1,0 +1,647 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, type Variants } from "framer-motion";
+import Link from "next/link";
+import {
+  Eye, EyeOff, Plus, Minus, Share2,
+  MessageCircle, ArrowLeft,
+  Phone, LayoutGrid, Info, Star,
+  Shield, Ruler, Package, Truck,
+} from "lucide-react";
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { PageShell } from "@/components/shared/PageShell";
+import { site } from "@/data/site";
+import type { WCProduct } from "@/lib/woocommerce";
+import { stripHtml, formatPrice } from "@/lib/woocommerce";
+
+/* ─── animation ────────────────────────────────────────── */
+const stagger: Variants = {
+  hidden:  {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+};
+const fadeUp: Variants = {
+  hidden:  { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" } },
+};
+
+/* ─── static copy ──────────────────────────────────────── */
+const STATIC = {
+  "black-dragon": {
+    breadcrumb:  "CATALOGUE / BLACK DRAGON",
+    ar:          "التنين الأسود",
+    ja:          "黒い龍",
+    title:       "BLACK\nDRAGON",
+    tagline:     "POWER • MYSTERY • SHADOW",
+    description: "A decorative wooden katana created for bold interiors, collectors, anime fans, and gaming setups. Dark, mysterious, and made to stand out.",
+    bgKey:       "black" as const,
+  },
+  "white-dragon": {
+    breadcrumb:  "CATALOGUE / WHITE DRAGON",
+    ar:          "التنين الأبيض",
+    ja:          "白い龍",
+    title:       "WHITE\nDRAGON",
+    tagline:     "PURE • HONOR • LIGHT",
+    description: "A decorative wooden katana designed with a clean, elegant, and premium aesthetic. Made for collectors, anime lovers, and refined room decoration.",
+    bgKey:       "white" as const,
+  },
+} as const;
+type ValidSlug = keyof typeof STATIC;
+
+/* ─── thumbnail labels ─────────────────────────────────── */
+const THUMB_LABELS = ["FULL VIEW", "TSUBA", "HANDLE", "ENGRAVING", "KASHIRA"];
+
+/* ─── specifications ───────────────────────────────────── */
+const SPECS = [
+  { Icon: Shield,  label: "PURPOSE",   value: "Display Only"     },
+  { Icon: Ruler,   label: "LENGTH",    value: "103 cm"           },
+  { Icon: Star,    label: "FINISH",    value: "Lacquered Detail" },
+  { Icon: Package, label: "PACKAGING", value: "Secure & Premium" },
+  { Icon: Truck,   label: "DELIVERY",  value: "Across Morocco"   },
+];
+
+/* ─── PlatformRings ────────────────────────────────────── */
+function PlatformRings() {
+  return (
+    <div aria-hidden style={{ position: "relative", width: "clamp(180px,36vw,300px)", height: "clamp(50px,7vw,82px)" }}>
+      {[0, 1, 2].map((i) => (
+        <div key={i} style={{
+          position: "absolute",
+          inset: `${i * 13}px ${i * 20}px`,
+          borderRadius: "50%",
+          border: `1px solid rgba(185,154,91,${.24 - i * .06})`,
+          background: i === 0 ? "radial-gradient(ellipse at center,rgba(185,154,91,.10) 0%,transparent 65%)" : "none",
+        }} />
+      ))}
+    </div>
+  );
+}
+
+/* ─── ControlBtn ───────────────────────────────────────── */
+function ControlBtn({
+  Icon, label, handler, active, glassBg,
+}: {
+  Icon: React.ElementType; label: string; handler: () => void; active: boolean; glassBg: string;
+}) {
+  return (
+    <button
+      aria-label={label}
+      onClick={handler}
+      style={{
+        width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
+        border: `1px solid ${active ? "var(--gold)" : "rgba(185,154,91,.36)"}`,
+        backgroundColor: active ? "rgba(185,154,91,.18)" : glassBg,
+        backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+        color: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", transition: "all .3s ease",
+      }}
+      onMouseEnter={(e) => { const el = e.currentTarget; el.style.borderColor = "var(--gold)"; el.style.backgroundColor = "rgba(185,154,91,.18)"; }}
+      onMouseLeave={(e) => { const el = e.currentTarget; el.style.borderColor = active ? "var(--gold)" : "rgba(185,154,91,.36)"; el.style.backgroundColor = active ? "rgba(185,154,91,.18)" : glassBg; }}
+    >
+      <Icon size={14} strokeWidth={1.5} />
+    </button>
+  );
+}
+
+/* ─── Component ────────────────────────────────────────── */
+interface Props { slug: string; wcProduct: WCProduct | null; }
+
+export default function ProductPageClient({ slug, wcProduct }: Props) {
+  const { setTheme } = useTheme();
+  const st = STATIC[slug as ValidSlug] ?? STATIC["black-dragon"];
+  const isBlack = st.bgKey === "black";
+
+  const [activeThumb, setActiveThumb] = useState(0);
+  const [zoom, setZoom]               = useState(1.0);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  const zoomIn      = () => setZoom((z) => Math.min(+(z + 0.15).toFixed(2), 1.7));
+  const zoomOut     = () => setZoom((z) => Math.max(+(z - 0.15).toFixed(2), 0.65));
+  const toggleFocus = () => setIsFocusMode((f) => !f);
+  const onShare     = async () => {
+    const url = `${window.location.origin}/product/${slug}`;
+    try {
+      if (navigator.share) await navigator.share({ title: "Nakama Store Morocco", url });
+      else await navigator.clipboard.writeText(url);
+    } catch { /* cancelled */ }
+  };
+
+  /* deduplicate WooCommerce images */
+  const rawUrls: string[] = [
+    ...(wcProduct?.image?.sourceUrl ? [wcProduct.image.sourceUrl] : []),
+    ...(wcProduct?.galleryImages?.nodes?.map((n) => n.sourceUrl) ?? []),
+  ];
+  const allImages   = Array.from(new Set(rawUrls));
+  const activeImage = allImages[activeThumb] ?? null;
+
+  useEffect(() => {
+    setTheme(slug === "white-dragon" ? "white-dragon" : "black-dragon");
+  }, [slug, setTheme]);
+
+  const productName = wcProduct?.name ?? st.title.replace("\n", " ");
+  const description = wcProduct?.shortDescription
+    ? stripHtml(wcProduct.shortDescription) || st.description
+    : st.description;
+  const priceStr = formatPrice(wcProduct?.price) ?? "1,399";
+
+  const glassBg    = isBlack ? "rgba(5,5,5,.52)"             : "rgba(247,242,232,.62)";
+  const textShadow = isBlack ? "0 2px 20px rgba(0,0,0,.85)" : "0 1px 12px rgba(247,242,232,.6)";
+  const imgFilter  = isBlack
+    ? "drop-shadow(0 40px 80px rgba(0,0,0,.72)) drop-shadow(0 0 28px rgba(185,154,91,.14))"
+    : "drop-shadow(0 28px 60px rgba(95,65,30,.28)) drop-shadow(0 0 24px rgba(185,154,91,.18))";
+
+  const mobileOverlay = isBlack
+    ? "linear-gradient(180deg,rgba(8,8,8,.14) 0%,rgba(8,8,8,.38) 50%,rgba(8,8,8,.82) 100%)"
+    : "linear-gradient(180deg,rgba(248,243,235,.12) 0%,rgba(248,243,235,.32) 50%,rgba(248,243,235,.80) 100%)";
+  const desktopOverlay = isBlack
+    ? "linear-gradient(90deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.28) 42%,rgba(0,0,0,.18) 100%)"
+    : "linear-gradient(90deg,rgba(248,243,235,.72) 0%,rgba(248,243,235,.36) 38%,rgba(248,243,235,.06) 100%)";
+
+  const waMsg  = encodeURIComponent(`🗡️ *Order — Nakama Store Morocco*\n\n*Model:* ${productName}\n\nأريد طلب هذا المنتج.`);
+  const waHref = `https://wa.me/${site.whatsapp.replace(/\D/g, "")}?text=${waMsg}`;
+
+  const FocusIcon = isFocusMode ? EyeOff : Eye;
+  const ctrlBtns = [
+    { Icon: FocusIcon, label: "Focus",    handler: toggleFocus, active: isFocusMode },
+    { Icon: Plus,      label: "Zoom in",  handler: zoomIn,      active: false       },
+    { Icon: Minus,     label: "Zoom out", handler: zoomOut,     active: false       },
+    { Icon: Share2,    label: "Share",    handler: onShare,     active: false       },
+  ] as const;
+
+  return (
+    <PageShell>
+      <div style={{ backgroundColor: "var(--bg)" }}>
+
+        {/* ══════════════════════════════════════════════
+            HERO — full-viewport.  No thumbnails inside.
+        ══════════════════════════════════════════════ */}
+        <section className="relative overflow-hidden" style={{ minHeight: "100svh" }}>
+
+          {/* Responsive background — same pattern as HeroSection */}
+          <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+            <picture style={{ display: "block", position: "absolute", inset: 0 }}>
+              <source media="(min-width:768px)" srcSet={`/images/hero/hero-${st.bgKey}-desktop.png`} />
+              <img
+                src={`/images/hero/hero-${st.bgKey}-mobile.png`}
+                alt=""
+                fetchPriority="high"
+                className="hero-bg-img"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </picture>
+          </div>
+
+          {/* Overlays */}
+          <div aria-hidden className="absolute inset-0 pointer-events-none md:hidden"
+            style={{ zIndex: 1, background: mobileOverlay }} />
+          <div aria-hidden className="absolute inset-0 pointer-events-none hidden md:block"
+            style={{ zIndex: 1, background: desktopOverlay }} />
+
+          {/* Content */}
+          <div className="relative" style={{ zIndex: 10, minHeight: "100svh", paddingTop: "76px" }}>
+
+            {/* Breadcrumb */}
+            <div className="px-5 md:px-10 pt-3" style={{ height: 36 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: .6, delay: .1 }}
+              >
+                <Link
+                  href="/catalogue"
+                  className="inline-flex items-center gap-1.5 transition-opacity duration-300"
+                  style={{ color: "var(--gold)", fontSize: "0.58rem", letterSpacing: "0.28em", textTransform: "uppercase", opacity: .78 }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.78"; }}
+                >
+                  <ArrowLeft size={10} strokeWidth={1.5} />
+                  {st.breadcrumb}
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* ── MOBILE ── */}
+            <div className="relative md:hidden" style={{ height: "calc(100svh - 76px - 36px)" }}>
+
+              {/* Text — absolute upper-left, mirrors HeroSection exactly */}
+              <motion.div
+                key={`m-copy-${slug}`}
+                variants={stagger} initial="hidden" animate="visible"
+                className="absolute z-20"
+                style={{ top: 10, left: 20, maxWidth: "min(54vw, 228px)", textAlign: "left" }}
+              >
+                <motion.p variants={fadeUp} className="arabic-kicker"
+                  style={{ fontSize: "clamp(1.15rem,5vw,1.55rem)", marginBottom: "0.25rem", textShadow }}>
+                  {st.ar}
+                </motion.p>
+                <motion.p variants={fadeUp} className="text-[.72rem] tracking-[.32em] mb-1"
+                  style={{ color: "var(--gold)", opacity: .72, textShadow }}>
+                  {st.ja}
+                </motion.p>
+                <motion.h1 variants={fadeUp} className="font-heading uppercase whitespace-pre-line mb-2"
+                  style={{ fontSize: "clamp(2.6rem,12vw,4rem)", lineHeight: .91, letterSpacing: ".02em", color: "var(--text)", textShadow }}>
+                  {st.title}
+                </motion.h1>
+                <motion.div variants={fadeUp}>
+                  <div className="w-7 h-px mb-2" style={{ backgroundColor: "var(--gold)", opacity: .55 }} />
+                </motion.div>
+                <motion.p variants={fadeUp} className="text-[.56rem] tracking-[.2em] uppercase mb-2"
+                  style={{ color: "var(--gold)" }}>
+                  {st.tagline}
+                </motion.p>
+                <motion.p variants={fadeUp} className="text-[.74rem] leading-snug"
+                  style={{ color: "var(--text-muted)", textShadow }}>
+                  {description}
+                </motion.p>
+                <motion.div variants={fadeUp} style={{ marginTop: "0.75rem" }}>
+                  <Link
+                    href={`/checkout?product=${slug}`}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 5,
+                      padding: "7px 14px", borderRadius: 6,
+                      border: "1px solid rgba(185,154,91,0.50)",
+                      color: "var(--gold)", fontSize: "0.54rem", letterSpacing: "0.2em", textTransform: "uppercase",
+                      backgroundColor: "rgba(185,154,91,0.08)", backdropFilter: "blur(4px)",
+                    }}
+                  >
+                    GET YOURS →
+                  </Link>
+                </motion.div>
+              </motion.div>
+
+              {/* Image — absolute centered */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center"
+                style={{ paddingBottom: 68 }}>
+                <motion.div
+                  key={`m-stage-${slug}`}
+                  initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.2, ease: "easeOut", delay: .3 }}
+                  className="flex flex-col items-center"
+                >
+                  {activeImage ? (
+                    <motion.img
+                      key={activeImage}
+                      src={activeImage}
+                      alt={productName}
+                      fetchPriority="high"
+                      animate={{ scale: zoom }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      style={{
+                        height: "clamp(440px, 62svh, 680px)",
+                        width: "auto",
+                        maxWidth: "min(64vw, 340px)",
+                        objectFit: "contain",
+                        display: "block",
+                        transformOrigin: "center bottom",
+                        filter: imgFilter,
+                      }}
+                    />
+                  ) : (
+                    <div style={{ height: "clamp(440px,62svh,680px)", display: "flex", alignItems: "center" }}>
+                      <p style={{ color: "var(--gold)", fontSize: "0.58rem", letterSpacing: "0.24em", opacity: .38 }}>
+                        IMAGE COMING SOON
+                      </p>
+                    </div>
+                  )}
+                  <div style={{ marginTop: activeImage ? -10 : 0 }}>
+                    <PlatformRings />
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Controls — absolute right */}
+              <div className="absolute z-30 flex flex-col gap-3"
+                style={{ right: 14, top: "50%", transform: "translateY(-50%)" }}>
+                {ctrlBtns.map(({ Icon, label, handler, active }) => (
+                  <ControlBtn key={label} Icon={Icon as React.ElementType} label={label} handler={handler} active={active} glassBg={glassBg} />
+                ))}
+              </div>
+            </div>
+
+            {/* ── DESKTOP ── */}
+            <div
+              className="hidden md:grid"
+              style={{
+                /*
+                 * Center column is DOMINANT (1.25fr).
+                 * Left and right are narrower so the sword can be large.
+                 * Same total min-width as HeroSection (≈940px) so behaviour matches.
+                 */
+                gridTemplateColumns: "minmax(280px, 0.78fr) minmax(380px, 1.25fr) minmax(220px, 0.58fr)",
+                height: "calc(100svh - 76px - 36px)",
+                alignItems: "center",
+              }}
+            >
+              {/* LEFT copy */}
+              <motion.div
+                key={`d-copy-${slug}`}
+                variants={stagger} initial="hidden" animate="visible"
+                className="flex flex-col gap-4"
+                style={{
+                  paddingLeft: "clamp(40px,6vw,88px)", paddingRight: 20,
+                  alignSelf: "center",
+                  opacity: isFocusMode ? 0 : 1,
+                  pointerEvents: isFocusMode ? "none" : "auto",
+                  transition: "opacity 0.4s ease",
+                }}
+              >
+                <motion.p variants={fadeUp} className="arabic-kicker"
+                  style={{ fontSize: "clamp(1.25rem,2vw,1.9rem)", marginBottom: "-0.5rem", textShadow }}>
+                  {st.ar}
+                </motion.p>
+                <motion.p variants={fadeUp} className="text-[.78rem] tracking-[.38em]"
+                  style={{ color: "var(--gold)", opacity: .68, textShadow }}>
+                  {st.ja}
+                </motion.p>
+                <motion.h1 variants={fadeUp} className="font-heading uppercase whitespace-pre-line"
+                  style={{ fontSize: "clamp(3.2rem,6vw,6.5rem)", lineHeight: .91, letterSpacing: ".02em", color: "var(--text)", textShadow }}>
+                  {st.title}
+                </motion.h1>
+                <motion.div variants={fadeUp}>
+                  <div className="w-8 h-px" style={{ backgroundColor: "var(--gold)", opacity: .55 }} />
+                </motion.div>
+                <motion.p variants={fadeUp} className="text-[.62rem] tracking-[.22em] uppercase"
+                  style={{ color: "var(--gold)" }}>
+                  {st.tagline}
+                </motion.p>
+                <motion.div variants={fadeUp} className="flex items-center gap-2">
+                  <div className="h-px w-5" style={{ backgroundColor: "var(--gold)", opacity: .35 }} />
+                  <span style={{ fontSize: ".4rem", color: "var(--gold)", opacity: .6 }}>◆</span>
+                  <div className="h-px w-5" style={{ backgroundColor: "var(--gold)", opacity: .35 }} />
+                </motion.div>
+                <motion.p variants={fadeUp} className="text-sm leading-relaxed max-w-[360px]"
+                  style={{ color: "var(--text-muted)", textShadow }}>
+                  {description}
+                </motion.p>
+                <motion.div variants={fadeUp}>
+                  <Link
+                    href={`/checkout?product=${slug}`}
+                    className="inline-flex items-center gap-2 transition-all duration-300"
+                    style={{
+                      height: 44, padding: "0 24px", borderRadius: 8,
+                      border: "1px solid rgba(185,154,91,0.50)",
+                      color: "var(--gold)", fontSize: "0.62rem", letterSpacing: "0.18em", textTransform: "uppercase",
+                      backgroundColor: "rgba(185,154,91,0.08)", backdropFilter: "blur(6px)",
+                    }}
+                    onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(185,154,91,0.20)"; el.style.borderColor = "rgba(185,154,91,0.80)"; }}
+                    onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(185,154,91,0.08)"; el.style.borderColor = "rgba(185,154,91,0.50)"; }}
+                  >
+                    GET YOURS →
+                  </Link>
+                </motion.div>
+                <motion.p variants={fadeUp} className="text-[.58rem] tracking-[.14em] uppercase"
+                  style={{ color: "var(--text-muted)", opacity: .5 }}>
+                  MADE OF WOOD · FOR DECORATION ONLY
+                </motion.p>
+              </motion.div>
+
+              {/* CENTER sword stage — overflow visible so large images don't clip */}
+              <div
+                className="flex flex-col items-center justify-center"
+                style={{ alignSelf: "stretch", position: "relative", overflow: "visible" }}
+              >
+                <motion.div
+                  key={`d-stage-${slug}`}
+                  initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.2, ease: "easeOut", delay: .35 }}
+                  className="flex flex-col items-center"
+                  style={{ overflow: "visible" }}
+                >
+                  {activeImage ? (
+                    <motion.img
+                      key={activeImage}
+                      src={activeImage}
+                      alt={productName}
+                      fetchPriority="high"
+                      animate={{ scale: zoom }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      style={{
+                        /*
+                         * Significantly taller than home hero (74vh → 82svh).
+                         * No maxWidth — width is determined by the image aspect ratio.
+                         * overflow:visible on the parent means no clipping.
+                         */
+                        height: "clamp(560px, 82svh, 920px)",
+                        width: "auto",
+                        objectFit: "contain",
+                        display: "block",
+                        transformOrigin: "center bottom",
+                        filter: imgFilter,
+                      }}
+                    />
+                  ) : (
+                    <div style={{ height: "clamp(560px,82svh,920px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <p style={{ color: "var(--gold)", fontSize: "0.6rem", letterSpacing: "0.28em", textTransform: "uppercase", opacity: .38 }}>IMAGE COMING SOON</p>
+                    </div>
+                  )}
+                  <div style={{ marginTop: activeImage ? -14 : 0 }}>
+                    <PlatformRings />
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* RIGHT slim panel — controls + price + CTA */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.75, delay: 0.4 }}
+                style={{
+                  paddingLeft: 20, paddingRight: "clamp(20px,3.5vw,48px)",
+                  display: "flex", flexDirection: "column", gap: "1.25rem",
+                  alignSelf: "center",
+                }}
+              >
+                {/* VIEW CONTROLS — always visible even in focus mode */}
+                <div>
+                  <p style={{ color: "var(--gold)", fontSize: "0.44rem", letterSpacing: "0.32em", textTransform: "uppercase", opacity: .6, marginBottom: "0.7rem" }}>
+                    VIEW CONTROLS
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {ctrlBtns.map(({ Icon, label, handler, active }) => (
+                      <ControlBtn key={label} Icon={Icon as React.ElementType} label={label} handler={handler} active={active} glassBg={glassBg} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Order block — fades in focus mode */}
+                <div style={{
+                  opacity: isFocusMode ? 0 : 1,
+                  pointerEvents: isFocusMode ? "none" : "auto",
+                  transition: "opacity 0.4s ease",
+                  display: "flex", flexDirection: "column", gap: "1.1rem",
+                }}>
+                  <div style={{ height: 1, backgroundColor: "rgba(185,154,91,0.18)" }} />
+
+                  <div>
+                    <p style={{ color: "var(--gold)", fontSize: "0.44rem", letterSpacing: "0.26em", textTransform: "uppercase", opacity: .62, marginBottom: "0.3rem" }}>
+                      STARTING FROM
+                    </p>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                      <span className="font-heading" style={{ fontSize: "2.2rem", color: "var(--text)", lineHeight: 1 }}>{priceStr}</span>
+                      <span style={{ color: "var(--gold)", fontSize: "0.56rem", letterSpacing: "0.22em" }}>DH</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                    {["103 cm · Decorative Wood", "Free delivery · All Morocco", "Cash on delivery"].map((s) => (
+                      <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 3, height: 3, borderRadius: "50%", backgroundColor: "var(--gold)", opacity: .55, flexShrink: 0 }} />
+                        <span style={{ color: "var(--text-muted)", fontSize: "0.7rem", lineHeight: 1.4 }}>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Link
+                    href={`/checkout?product=${slug}`}
+                    className="flex items-center justify-center gap-2 transition-all duration-300"
+                    style={{ height: 44, borderRadius: 8, backgroundColor: "var(--gold)", color: "var(--bg)", fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.12)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+                  >
+                    GET YOURS →
+                  </Link>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════
+            THUMBNAILS — own section, clean, below hero
+        ══════════════════════════════════════════════ */}
+        <section style={{
+          backgroundColor: isBlack ? "rgba(5,5,5,0.95)" : "rgba(248,243,235,0.96)",
+          borderBottom: "1px solid rgba(185,154,91,0.14)",
+        }}>
+          <div style={{ padding: "0.9rem clamp(1.5rem,5vw,4rem)", overflowX: "auto", scrollbarWidth: "none" }}>
+            <div style={{ display: "flex", gap: "0.9rem", width: "max-content", minWidth: "100%" }}>
+              {allImages.length > 0
+                ? allImages.map((src, i) => (
+                    <button
+                      key={`${src}-${i}`}
+                      onClick={() => setActiveThumb(i)}
+                      style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                    >
+                      <div style={{
+                        width: 78, height: 100, borderRadius: 8, overflow: "hidden",
+                        border: activeThumb === i ? "1.5px solid var(--gold)" : "1px solid rgba(185,154,91,0.22)",
+                        backgroundColor: isBlack ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                        transition: "border-color 0.3s ease",
+                      }}>
+                        <img src={src} alt={`View ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
+                      </div>
+                      <span style={{ color: activeThumb === i ? "var(--gold)" : "var(--text-muted)", fontSize: "0.46rem", letterSpacing: "0.2em", textTransform: "uppercase", transition: "color 0.3s", whiteSpace: "nowrap" }}>
+                        {THUMB_LABELS[i] ?? `VIEW ${i + 1}`}
+                      </span>
+                    </button>
+                  ))
+                : THUMB_LABELS.map((label, i) => (
+                    <button
+                      key={label}
+                      onClick={() => setActiveThumb(i)}
+                      style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer" }}
+                    >
+                      <div style={{
+                        width: 78, height: 100, borderRadius: 8,
+                        border: activeThumb === i ? "1.5px solid var(--gold)" : "1px solid rgba(185,154,91,0.22)",
+                        backgroundColor: isBlack ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "all 0.3s ease",
+                      }}>
+                        <div style={{ width: 16, height: 54, borderRadius: 3, background: `rgba(185,154,91,${activeThumb === i ? 0.5 : 0.18})`, transition: "background 0.3s" }} />
+                      </div>
+                      <span style={{ color: activeThumb === i ? "var(--gold)" : "var(--text-muted)", fontSize: "0.46rem", letterSpacing: "0.2em", textTransform: "uppercase", transition: "color 0.3s" }}>
+                        {label}
+                      </span>
+                    </button>
+                  ))
+              }
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════
+            SPECIFICATIONS STRIP
+        ══════════════════════════════════════════════ */}
+        <section style={{ backgroundColor: "var(--bg)" }}>
+          <div style={{ height: 1, backgroundColor: "rgba(185,154,91,0.18)" }} />
+          <div className="px-5 md:px-10 pt-7 pb-8">
+            <p className="text-center text-[.48rem] tracking-[.42em] uppercase mb-8"
+              style={{ color: "var(--gold)", opacity: .58 }}>
+              SPECIFICATIONS
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5" style={{ gap: 0 }}>
+              {SPECS.map(({ Icon, label, value }) => (
+                <div key={label} className="flex flex-col items-center text-center"
+                  style={{ padding: "clamp(1rem,2vw,1.4rem) clamp(0.5rem,1.5vw,1rem)", borderRight: "1px solid rgba(185,154,91,0.11)", borderBottom: "1px solid rgba(185,154,91,0.11)" }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: "50%",
+                    border: "1px solid rgba(185,154,91,0.28)",
+                    background: isBlack
+                      ? "radial-gradient(circle at center, rgba(185,154,91,0.10) 0%, transparent 70%)"
+                      : "radial-gradient(circle at center, rgba(185,154,91,0.16) 0%, transparent 70%)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    marginBottom: "0.65rem", flexShrink: 0,
+                  }}>
+                    <Icon size={14} strokeWidth={1.5} style={{ color: "var(--gold)" }} />
+                  </div>
+                  <p style={{ color: "var(--gold)", fontSize: "0.46rem", letterSpacing: "0.3em", textTransform: "uppercase", opacity: .72, marginBottom: "0.3rem", lineHeight: 1 }}>{label}</p>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.78rem", lineHeight: 1.25 }}>{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ height: 1, backgroundColor: "rgba(185,154,91,0.12)" }} />
+          <p className="text-center text-[.46rem] tracking-[.18em] uppercase mt-4 mb-4"
+            style={{ color: "var(--text-muted)", opacity: .38 }}>
+            MADE OF WOOD · FOR DECORATION ONLY
+          </p>
+        </section>
+
+        {/* WhatsApp CTA — mobile only */}
+        <section className="md:hidden" style={{ backgroundColor: "var(--bg)", padding: "1.25rem 1.5rem 5rem" }}>
+          <a
+            href={waHref}
+            target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2"
+            style={{ height: 52, borderRadius: 10, backgroundColor: "#25D366", color: "#fff", fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 600 }}
+          >
+            <MessageCircle size={16} />
+            ORDER ON WHATSAPP
+          </a>
+        </section>
+
+        {/* Fixed mobile bottom nav */}
+        <nav aria-label="Bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+          style={{
+            backgroundColor: isBlack ? "rgba(5,5,5,.92)" : "rgba(247,242,232,.94)",
+            backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+            borderTop: "1px solid rgba(185,154,91,.18)",
+            paddingBottom: "env(safe-area-inset-bottom,0px)",
+            transition: "background-color .4s ease",
+          }}
+        >
+          <div className="flex">
+            {([
+              [LayoutGrid, "Catalogue", "/catalogue"],
+              [Info,       "About",     "/about"    ],
+              [Star,       "Quality",   "/quality"  ],
+              [Phone,      "Contact",   "/contact"  ],
+            ] as const).map(([Icon, label, href]) => (
+              <Link key={label} href={href}
+                className="flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-colors duration-300"
+                style={{ color: "var(--text-muted)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--gold)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
+              >
+                <Icon size={17} strokeWidth={1.5} />
+                <span className="text-[.48rem] tracking-[.18em] uppercase">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
+
+      </div>
+    </PageShell>
+  );
+}

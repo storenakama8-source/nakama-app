@@ -1,58 +1,151 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { MessageCircle, ExternalLink, ChevronRight } from "lucide-react";
 import { site } from "@/data/site";
+import { useTheme } from "@/components/providers/ThemeProvider";
+
+const NAV = [
+  { label: "Catalogue",      href: "/catalogue" },
+  { label: "About",          href: "/about"     },
+  { label: "Quality",        href: "/quality"   },
+  { label: "Contact",        href: "/contact"   },
+  { label: "Privacy Policy", href: "/privacy"   },
+];
 
 export default function Footer() {
+  const { theme } = useTheme();
+  const isBlack = theme === "black-dragon";
+  const whatsappHref = `https://wa.me/${site.whatsapp.replace(/\D/g, "")}`;
+
   return (
     <footer
-      id="contact"
-      className="py-16 px-6"
       style={{
-        backgroundColor: "var(--bg-soft)",
-        borderTop: "1px solid var(--border)",
-        transition: "background-color 0.5s ease, border-color 0.5s ease",
+        backgroundColor: isBlack ? "rgba(5,5,5,0.98)" : "rgba(245,239,228,0.98)",
+        borderTop: "1px solid rgba(185,154,91,0.18)",
+        transition: "background-color 0.5s ease",
       }}
     >
-      <div className="max-w-4xl mx-auto flex flex-col items-center gap-8 text-center">
-        <Image
-          src="/images/logo/logo-dark.png"
-          alt="Nakama"
-          width={110}
-          height={38}
-          className="h-9 w-auto opacity-70"
-        />
-
-        <p className="text-sm max-w-md font-light leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          Decorative wooden katanas inspired by Japanese legends. Made for collectors, anime lovers, and premium room decoration.
-          <br />
-          <span className="text-xs mt-1 block" style={{ color: "var(--text-muted)", opacity: 0.5 }}>
+      {/* Main footer */}
+      <div
+        className="max-w-screen-xl mx-auto px-6 py-12"
+        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "2.5rem" }}
+      >
+        {/* Brand */}
+        <div>
+          <p
+            className="font-heading uppercase"
+            style={{ fontSize: "1.15rem", letterSpacing: "0.32em", color: "var(--text)", marginBottom: "0.4rem" }}
+          >
+            NAKAMA
+          </p>
+          <p style={{ fontSize: "0.48rem", letterSpacing: "0.38em", color: "var(--gold)", opacity: 0.82, textTransform: "uppercase", marginBottom: "1rem" }}>
+            STORE MOROCCO
+          </p>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.65, maxWidth: "240px" }}>
+            Decorative wooden katanas inspired by Japanese legends. For collectors, anime lovers, and premium room decoration.
+          </p>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.68rem", opacity: 0.5, marginTop: "0.75rem" }}>
             For decoration only. Not a real weapon.
-          </span>
-        </p>
-
-        <div
-          className="flex items-center gap-6 text-xs tracking-widest uppercase"
-          style={{ color: "var(--text-muted)" }}
-        >
-          <Link href="#catalogue" className="hover:opacity-100 opacity-60 transition-opacity">Catalogue</Link>
-          <Link href="#order" className="hover:opacity-100 opacity-60 transition-opacity">Order</Link>
-          <Link href="#faq" className="hover:opacity-100 opacity-60 transition-opacity">FAQ</Link>
+          </p>
         </div>
 
-        <Link
-          href={site.instagram}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-sm opacity-50 hover:opacity-80 transition-opacity"
-          style={{ color: "var(--text-muted)" }}
-        >
-          <ExternalLink size={14} />
-          <span>@nakama_store_morocco</span>
-        </Link>
+        {/* Navigation */}
+        <div>
+          <p style={{ color: "var(--gold)", fontSize: "0.6rem", letterSpacing: "0.28em", textTransform: "uppercase", marginBottom: "1.2rem", opacity: 0.82 }}>
+            NAVIGATION
+          </p>
+          <nav className="flex flex-col gap-3">
+            {NAV.map(({ label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                style={{ color: "var(--text-muted)", fontSize: "0.82rem", letterSpacing: "0.06em", opacity: 0.75, transition: "opacity 0.2s" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; (e.currentTarget as HTMLElement).style.color = "var(--gold)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.75"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
-        <p className="text-xs" style={{ color: "var(--text-muted)", opacity: 0.3 }}>
+        {/* Collection */}
+        <div>
+          <p style={{ color: "var(--gold)", fontSize: "0.6rem", letterSpacing: "0.28em", textTransform: "uppercase", marginBottom: "1.2rem", opacity: 0.82 }}>
+            COLLECTION
+          </p>
+          <nav className="flex flex-col gap-3">
+            {[
+              { label: "Black Dragon", href: "/product/black-dragon" },
+              { label: "White Dragon", href: "/product/white-dragon" },
+              { label: "Get Yours",    href: "/product/black-dragon" },
+              { label: "Cart",         href: "/cart"                 },
+            ].map(({ label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                style={{ color: "var(--text-muted)", fontSize: "0.82rem", letterSpacing: "0.06em", opacity: 0.75, transition: "opacity 0.2s" }}
+                onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.opacity = "1"; el.style.color = "var(--gold)"; }}
+                onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.opacity = "0.75"; el.style.color = "var(--text-muted)"; }}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <p style={{ color: "var(--gold)", fontSize: "0.6rem", letterSpacing: "0.28em", textTransform: "uppercase", marginBottom: "1.2rem", opacity: 0.82 }}>
+            CONTACT
+          </p>
+          <div className="flex flex-col gap-3">
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+              style={{ color: "var(--text-muted)", fontSize: "0.82rem", opacity: 0.75, transition: "opacity 0.2s" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.opacity = "1"; el.style.color = "var(--gold)"; }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.opacity = "0.75"; el.style.color = "var(--text-muted)"; }}
+            >
+              <MessageCircle size={13} />
+              WhatsApp
+            </a>
+            <a
+              href={site.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+              style={{ color: "var(--text-muted)", fontSize: "0.82rem", opacity: 0.75, transition: "opacity 0.2s" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.opacity = "1"; el.style.color = "var(--gold)"; }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.opacity = "0.75"; el.style.color = "var(--text-muted)"; }}
+            >
+              <ExternalLink size={13} />
+              @nakama_store_morocco
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div
+        style={{
+          borderTop: "1px solid rgba(185,154,91,0.10)",
+          padding: "1.2rem 1.5rem",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "0.75rem",
+        }}
+      >
+        <p style={{ color: "var(--text-muted)", fontSize: "0.68rem", opacity: 0.4 }}>
           © {new Date().getFullYear()} Nakama Store Morocco. All rights reserved.
+        </p>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.68rem", opacity: 0.4, letterSpacing: "0.12em" }}>
+          FOR DECORATION ONLY · NOT A WEAPON
         </p>
       </div>
     </footer>
