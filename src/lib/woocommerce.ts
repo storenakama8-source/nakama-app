@@ -5,5 +5,5 @@
  * Note: Order submission still goes through WhatsApp/contact — no checkout API needed.
  */
 
-export type { WCProduct } from "./wordpress";
-export { getProducts, getProductBySlug, stripHtml, formatPrice } from "./wordpress";
+export type { WCProduct, AccessoryProduct } from "./wordpress";
+export { getProducts, getProductBySlug, getAccessoriesProducts, stripHtml, formatPrice } from "./wordpress";

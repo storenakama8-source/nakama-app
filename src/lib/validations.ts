@@ -17,14 +17,24 @@ export const orderSchema = z.object({
 
 export type OrderSchema = z.infer<typeof orderSchema>;
 
-/** Checkout-specific schema (no email, adds quantity) */
+/** Checkout schema — multi-product with accessories and free-gift bundle logic */
 export const checkoutSchema = z.object({
-  model:    z.enum(["black-dragon", "white-dragon"]),
-  quantity: z.number().int().min(1).max(20),
-  fullName: z.string().min(2, "Full name is required."),
-  phone:    z.string().min(9, "Valid phone number required.").regex(/^[0-9+\s\-()]+$/, "Invalid number."),
-  city:     z.string().min(2, "City is required."),
-  address:  z.string().min(5, "Full address is required."),
+  fullName:             z.string().min(2, "Full name is required."),
+  phone:                z.string().min(9, "Valid phone required.").regex(/^[0-9+\s\-()]+$/, "Invalid number."),
+  city:                 z.string().min(2, "City is required."),
+  address:              z.string().min(5, "Full address is required."),
+  blackQty:             z.number().int().min(0).max(20),
+  whiteQty:             z.number().int().min(0).max(20),
+  accessories:          z.array(z.object({
+    slug:        z.string(),
+    databaseId:  z.number().int(),
+    quantity:    z.number().int().min(0).max(20),
+  })).default([]),
+  hasBundle:            z.boolean().default(false),
+  bundleGiftDatabaseId: z.number().int().nullable().optional(),
+}).refine((d) => d.blackQty + d.whiteQty >= 1, {
+  message: "At least one katana is required.",
+  path:    ["blackQty"],
 });
 
 export type CheckoutSchema = z.infer<typeof checkoutSchema>;

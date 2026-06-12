@@ -62,6 +62,22 @@ export function formatPrice(raw: string | null | undefined): string | null {
     .trim();
 }
 
+/* ── Accessory product type ───────────────────────────────── */
+
+export interface AccessoryProduct {
+  databaseId: number;
+  slug:  string;
+  name:  string;
+  price: number;
+  image: string | null;
+}
+
+const ACCESSORY_FALLBACK: AccessoryProduct[] = [
+  { databaseId: 0, slug: "display-stand",        name: "Display Stand",        price: 99, image: null },
+  { databaseId: 0, slug: "double-display-stand",  name: "Double Display Stand", price: 99, image: null },
+  { databaseId: 0, slug: "wall-mount",            name: "Wall Mount",           price: 99, image: null },
+];
+
 /* ── Product fetchers ─────────────────────────────────────── */
 
 /**
@@ -75,6 +91,31 @@ export async function getProducts(): Promise<WCProduct[]> {
   } catch (err) {
     console.error("[Nakama] getProducts() failed — using static fallback.", err);
     return [];
+  }
+}
+
+/**
+ * Fetch accessories (products in the "accessories" category).
+ * Falls back to a static list if API unavailable or category is empty.
+ */
+export async function getAccessoriesProducts(): Promise<AccessoryProduct[]> {
+  try {
+    const all = await getProducts();
+    const hits = all.filter((p) =>
+      p.productCategories?.nodes?.some(
+        (c) => c.slug === "accessories" || c.name.toLowerCase() === "accessories"
+      )
+    );
+    if (!hits.length) return ACCESSORY_FALLBACK;
+    return hits.map((p) => ({
+      databaseId: p.databaseId,
+      slug:       p.slug,
+      name:       p.name,
+      price:      parseInt((formatPrice(p.price) ?? "99").replace(/[^0-9]/g, ""), 10) || 99,
+      image:      p.image?.sourceUrl ?? null,
+    }));
+  } catch {
+    return ACCESSORY_FALLBACK;
   }
 }
 

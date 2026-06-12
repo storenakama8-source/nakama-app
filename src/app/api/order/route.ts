@@ -10,25 +10,31 @@ function wcAuthHeader(): string {
   return "Basic " + Buffer.from(`${key}:${secret}`).toString("base64");
 }
 
+interface WcLineItem {
+  product_id: number;
+  quantity:   number;
+  total?:     string;
+}
+
 async function createWooOrder(body: {
-  productId: number;
-  quantity:  number;
-  fullName:  string;
-  phone:     string;
-  city:      string;
-  address:   string;
-  model:     string;
+  lineItems:  WcLineItem[];
+  fullName:   string;
+  phone:      string;
+  city:       string;
+  address:    string;
+  orderNote:  string;
 }): Promise<{ id: number } | null> {
   const wcUrl = process.env.WC_REST_URL ?? "https://admin.nakamastore.ma/wp-json/wc/v3";
-  const key   = process.env.WC_CONSUMER_KEY;
-  if (!key) return null; // env not configured — skip silently
+  if (!process.env.WC_CONSUMER_KEY) return null;
 
   const [firstName, ...rest] = body.fullName.trim().split(" ");
   const lastName = rest.join(" ") || firstName;
 
   const payload = {
-    status:          "pending",
-    customer_note:   `Website order — ${body.model}`,
+    status:               "on-hold",
+    payment_method:       "cod",
+    payment_method_title: "Cash on Delivery",
+    customer_note:        body.orderNote,
     billing: {
       first_name: firstName,
       last_name:  lastName,
@@ -37,27 +43,19 @@ async function createWooOrder(body: {
       country:    "MA",
       phone:      body.phone,
     },
-    line_items: [
-      { product_id: body.productId, quantity: body.quantity },
-    ],
+    line_items: body.lineItems,
   };
 
   try {
     const res = await fetch(`${wcUrl}/orders`, {
       method:  "POST",
-      headers: {
-        "Content-Type":  "application/json",
-        "Authorization": wcAuthHeader(),
-      },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json", "Authorization": wcAuthHeader() },
+      body:    JSON.stringify(payload),
     });
-
     if (!res.ok) {
-      const err = await res.text();
-      console.error("[WC order error]", res.status, err);
+      console.error("[WC order error]", res.status, await res.text());
       return null;
     }
-
     return (await res.json()) as { id: number };
   } catch (e) {
     console.error("[WC order fetch error]", e);
@@ -79,31 +77,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { model, quantity, fullName, phone, city, address } = parsed.data;
+    const { fullName, phone, city, address, blackQty, whiteQty, accessories, hasBundle, bundleGiftDatabaseId } = parsed.data;
 
-    // Look up the WooCommerce product to get its numeric ID
-    const product = await getProductBySlug(model);
-    console.log("[NEW ORDER]", { model, quantity, fullName, city });
+    console.log("[NEW ORDER]", { fullName, city, blackQty, whiteQty, accessories, hasBundle });
+
+    /* ── Resolve product IDs for katanas ── */
+    const lineItems: WcLineItem[] = [];
+
+    if (blackQty > 0) {
+      const p = await getProductBySlug("black-dragon");
+      if (p?.databaseId) lineItems.push({ product_id: p.databaseId, quantity: blackQty });
+    }
+    if (whiteQty > 0) {
+      const p = await getProductBySlug("white-dragon");
+      if (p?.databaseId) lineItems.push({ product_id: p.databaseId, quantity: whiteQty });
+    }
+
+    /* ── Accessories ── */
+    for (const acc of accessories) {
+      if (acc.quantity > 0 && acc.databaseId > 0) {
+        lineItems.push({ product_id: acc.databaseId, quantity: acc.quantity });
+      }
+    }
+
+    /* ── Free gift (Double Display Stand at 0 DH) ── */
+    if (hasBundle && bundleGiftDatabaseId && bundleGiftDatabaseId > 0) {
+      lineItems.push({ product_id: bundleGiftDatabaseId, quantity: 1, total: "0" });
+    }
+
+    const bundleNote = hasBundle
+      ? "\n\n⚠️ FREE GIFT: Double Display Stand included because customer ordered Black Dragon + White Dragon."
+      : "";
+
+    const orderNote =
+      `Website order. Call customer to confirm.\nDelivery: 24H – 48H. Free delivery. Cash on delivery.${bundleNote}`;
 
     let orderId: number | null = null;
-
-    if (product?.databaseId) {
-      const wcOrder = await createWooOrder({
-        productId: product.databaseId,
-        quantity,
-        fullName,
-        phone,
-        city,
-        address,
-        model,
-      });
+    if (lineItems.length) {
+      const wcOrder = await createWooOrder({ lineItems, fullName, phone, city, address, orderNote });
       orderId = wcOrder?.id ?? null;
     }
 
     return NextResponse.json({
-      success:  true,
-      orderId:  orderId ?? `NK-${Date.now()}`,
-      message:  "Order received.",
+      success: true,
+      orderId: orderId ?? `NK-${Date.now()}`,
+      message: "Order received.",
     });
   } catch (err) {
     console.error("[order route]", err);
