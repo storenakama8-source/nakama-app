@@ -3,14 +3,14 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import {
   User, Phone, MapPin, Building2,
-  Minus, Plus, ArrowLeft, Loader2,
+  Minus, Plus, Loader2,
   ShieldCheck, Truck, CreditCard, Package,
 } from "lucide-react";
 import type { WCProduct } from "@/lib/woocommerce";
 import { formatPrice } from "@/lib/woocommerce";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 /* ── helpers ─────────────────────────────────────────────── */
 const NAMES: Record<string, { en: string; ar: string; ja: string }> = {
@@ -64,11 +64,12 @@ function FormField({
 }
 
 /* ── Component ───────────────────────────────────────────── */
-interface Props { slug: string; wcProduct: WCProduct | null; }
+interface Props { slug: string; wcProduct: WCProduct | null; initialQty?: number; }
 
-export default function CheckoutClient({ slug, wcProduct }: Props) {
-  const router  = useRouter();
-  const isBlack = slug === "black-dragon";
+export default function CheckoutClient({ slug, wcProduct, initialQty = 1 }: Props) {
+  const router    = useRouter();
+  const { theme } = useTheme();
+  const isBlack   = theme === "black-dragon";
   const names   = NAMES[slug] ?? NAMES["black-dragon"];
   const unit    = parsePrice(wcProduct?.price);
   const imgSrc  = wcProduct?.image?.sourceUrl ?? null;
@@ -77,7 +78,7 @@ export default function CheckoutClient({ slug, wcProduct }: Props) {
   const [phone,    setPhone]    = useState("");
   const [city,     setCity]     = useState("");
   const [address,  setAddress]  = useState("");
-  const [qty,      setQty]      = useState(1);
+  const [qty,      setQty]      = useState(initialQty);
   const [errors,   setErrors]   = useState<Record<string, string>>({});
   const [loading,  setLoading]  = useState(false);
   const [apiErr,   setApiErr]   = useState("");
@@ -121,47 +122,7 @@ export default function CheckoutClient({ slug, wcProduct }: Props) {
     : "drop-shadow(0 18px 36px rgba(95,65,30,.24))";
 
   return (
-    <div style={{ minHeight: "100svh", backgroundColor: bg, transition: "background .4s" }}>
-
-      {/* ── header ── */}
-      <header style={{
-        position: "sticky", top: 0, zIndex: 40,
-        height: 58,
-        backgroundColor: isBlack ? "rgba(5,5,5,0.96)" : "rgba(247,242,232,0.96)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: `1px solid ${cardBorder}`,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 clamp(1rem,4vw,2.5rem)",
-      }}>
-        <Link href={`/product/${slug}`}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.7, transition: "opacity .2s" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.7"; }}
-        >
-          <ArrowLeft size={12} strokeWidth={1.5} /> BACK
-        </Link>
-
-        <p className="font-heading" style={{ fontSize: "0.72rem", letterSpacing: "0.34em", textTransform: "uppercase", color: "var(--gold)" }}>
-          NAKAMA <span style={{ opacity: 0.45, margin: "0 6px" }}>·</span> CHECKOUT
-        </p>
-
-        {/* Steps indicator */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {["Details", "Confirm"].map((step, i) => (
-            <div key={step} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {i > 0 && <div style={{ width: 16, height: 1, backgroundColor: cardBorder }} />}
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `1px solid ${i === 0 ? "var(--gold)" : cardBorder}`, backgroundColor: i === 0 ? "var(--gold)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: "0.42rem", color: i === 0 ? "var(--bg)" : "var(--text-muted)", fontWeight: 700 }}>{i + 1}</span>
-                </div>
-                <span style={{ fontSize: "0.5rem", letterSpacing: "0.14em", textTransform: "uppercase", color: i === 0 ? "var(--gold)" : "var(--text-muted)", opacity: i === 0 ? 1 : 0.45 }}>
-                  {step}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </header>
+    <div style={{ minHeight: "100svh", backgroundColor: bg, transition: "background .4s", paddingTop: "76px" }}>
 
       {/* ── main ── */}
       <div style={{ maxWidth: 1140, margin: "0 auto", padding: "clamp(1.5rem,4vh,3rem) clamp(1rem,4vw,2rem)" }}>
@@ -182,7 +143,7 @@ export default function CheckoutClient({ slug, wcProduct }: Props) {
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
                   className="sm:grid-cols-2 grid-cols-1">
-                  <FormField label="Full Name"    Icon={User}  value={fullName} onChange={setFullName} error={errors.fullName} placeholder="Younes Masrour"      autoComplete="name" />
+                  <FormField label="Full Name"    Icon={User}  value={fullName} onChange={setFullName} error={errors.fullName} placeholder="Younes"      autoComplete="name" />
                   <FormField label="Phone Number" Icon={Phone} value={phone}    onChange={setPhone}    error={errors.phone}    placeholder="+212 6XX XXX XXX"   autoComplete="tel" type="tel" />
                 </div>
               </div>
@@ -219,7 +180,7 @@ export default function CheckoutClient({ slug, wcProduct }: Props) {
                     >
                       <Minus size={17} strokeWidth={2} />
                     </button>
-                    <div style={{ minWidth: 68, textAlign: "center", padding: "4px 8px" }}>
+                    <div style={{ minWidth: 68, height: 52, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
                       <AnimatePresence mode="wait">
                         <motion.span key={qty}
                           initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
@@ -321,7 +282,6 @@ export default function CheckoutClient({ slug, wcProduct }: Props) {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.1 }}
               style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-              className="order-first lg:order-last"
             >
               {/* Product card */}
               <div style={{ borderRadius: 18, border: `1px solid ${cardBorder}`, backgroundColor: cardBg, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", overflow: "hidden" }}>

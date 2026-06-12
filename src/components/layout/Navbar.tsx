@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ShoppingBag, Menu, X, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useCart } from "@/components/providers/CartProvider";
 
 const NAV_LINKS = [
   { label: "Catalogue", href: "/catalogue" },
@@ -36,6 +37,7 @@ const DRAGONS = [
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
+  const { totalCount } = useCart();
   const pathname = usePathname();
   const router   = useRouter();
   const isBlack  = theme === "black-dragon";
@@ -132,22 +134,25 @@ export default function Navbar() {
               href="/cart"
               className="p-1.5 transition-colors duration-300"
               aria-label="Go to cart"
-              style={{ color: iconColor }}
+              style={{ color: iconColor, position: "relative" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = goldColor; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = iconColor; }}
             >
               <ShoppingBag size={19} strokeWidth={1.5} />
+              {totalCount > 0 && (
+                <span style={{
+                  position: "absolute", top: 0, right: 0,
+                  minWidth: 16, height: 16, borderRadius: 8,
+                  backgroundColor: "var(--gold)", color: "var(--bg)",
+                  fontSize: "0.42rem", fontWeight: 700, lineHeight: 1,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  padding: "0 3px",
+                }}>
+                  {totalCount > 9 ? "9+" : totalCount}
+                </span>
+              )}
             </Link>
 
-            <Link
-              href="/contact"
-              className="hidden md:inline-flex items-center transition-all duration-300"
-              style={{ height: 34, padding: "0 14px", borderRadius: 4, border: "1px solid rgba(185,154,91,.45)", color: goldColor, fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", whiteSpace: "nowrap" }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--gold)"; el.style.color = "var(--bg)"; }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; el.style.color = goldColor; }}
-            >
-              CONTACT US
-            </Link>
           </div>
         </div>
       </header>
@@ -217,7 +222,20 @@ export default function Navbar() {
             className="flex items-center justify-between transition-colors duration-200"
             style={{ color: "var(--text-muted)", fontSize: "0.85rem", letterSpacing: "0.04em", padding: "0.75rem 0", borderBottom: "1px solid rgba(185,154,91,0.1)" }}
           >
-            Cart
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              Cart
+              {totalCount > 0 && (
+                <span style={{
+                  minWidth: 18, height: 18, borderRadius: 9,
+                  backgroundColor: "var(--gold)", color: "var(--bg)",
+                  fontSize: "0.48rem", fontWeight: 700,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  padding: "0 4px",
+                }}>
+                  {totalCount > 9 ? "9+" : totalCount}
+                </span>
+              )}
+            </span>
             <ChevronRight size={14} strokeWidth={1.5} style={{ opacity: 0.4 }} />
           </Link>
         </nav>

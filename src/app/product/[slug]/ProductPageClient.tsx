@@ -7,9 +7,10 @@ import {
   Eye, EyeOff, Plus, Minus, Share2,
   MessageCircle, ArrowLeft,
   Phone, LayoutGrid, Info, Star,
-  Shield, Ruler, Package, Truck,
+  Shield, Ruler, Package, Truck, ShoppingCart, Check,
 } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useCart } from "@/components/providers/CartProvider";
 import { PageShell } from "@/components/shared/PageShell";
 import { site } from "@/data/site";
 import type { WCProduct } from "@/lib/woocommerce";
@@ -108,12 +109,28 @@ interface Props { slug: string; wcProduct: WCProduct | null; }
 
 export default function ProductPageClient({ slug, wcProduct }: Props) {
   const { setTheme } = useTheme();
+  const { addToCart } = useCart();
   const st = STATIC[slug as ValidSlug] ?? STATIC["black-dragon"];
   const isBlack = st.bgKey === "black";
 
   const [activeThumb, setActiveThumb] = useState(0);
   const [zoom, setZoom]               = useState(1.0);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [cartAdded, setCartAdded]     = useState(false);
+
+  function handleAddToCart() {
+    const priceNum = parseInt(priceStr.replace(/[^0-9]/g, ""), 10) || 1399;
+    addToCart({
+      slug,
+      name:    productName,
+      nameAr:  st.ar,
+      nameJa:  st.ja,
+      price:   priceNum,
+      image:   wcProduct?.image?.sourceUrl ?? null,
+    });
+    setCartAdded(true);
+    setTimeout(() => setCartAdded(false), 2000);
+  }
 
   const zoomIn      = () => setZoom((z) => Math.min(+(z + 0.15).toFixed(2), 1.7));
   const zoomOut     = () => setZoom((z) => Math.max(+(z - 0.15).toFixed(2), 0.65));
@@ -253,7 +270,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                   style={{ color: "var(--text-muted)", textShadow }}>
                   {description}
                 </motion.p>
-                <motion.div variants={fadeUp} style={{ marginTop: "0.75rem" }}>
+                <motion.div variants={fadeUp} style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                   <Link
                     href={`/checkout?product=${slug}`}
                     style={{
@@ -264,8 +281,22 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                       backgroundColor: "rgba(185,154,91,0.08)", backdropFilter: "blur(4px)",
                     }}
                   >
-                    GET YOURS →
+                    ORDER NOW
                   </Link>
+                  <button
+                    onClick={handleAddToCart}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 5,
+                      padding: "7px 12px", borderRadius: 6,
+                      border: `1px solid ${cartAdded ? "rgba(34,197,94,0.6)" : "rgba(185,154,91,0.35)"}`,
+                      color: cartAdded ? "#22c55e" : "var(--text-muted)", fontSize: "0.54rem", letterSpacing: "0.2em", textTransform: "uppercase",
+                      backgroundColor: cartAdded ? "rgba(34,197,94,0.08)" : "transparent",
+                      cursor: "pointer", transition: "all .25s",
+                    }}
+                  >
+                    {cartAdded ? <Check size={11} strokeWidth={2} /> : <ShoppingCart size={11} strokeWidth={1.5} />}
+                    {cartAdded ? "ADDED ✓" : "ADD TO CART"}
+                  </button>
                 </motion.div>
               </motion.div>
 
@@ -373,7 +404,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                   style={{ color: "var(--text-muted)", textShadow }}>
                   {description}
                 </motion.p>
-                <motion.div variants={fadeUp}>
+                <motion.div variants={fadeUp} style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap" }}>
                   <Link
                     href={`/checkout?product=${slug}`}
                     className="inline-flex items-center gap-2 transition-all duration-300"
@@ -386,8 +417,22 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                     onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(185,154,91,0.20)"; el.style.borderColor = "rgba(185,154,91,0.80)"; }}
                     onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(185,154,91,0.08)"; el.style.borderColor = "rgba(185,154,91,0.50)"; }}
                   >
-                    GET YOURS →
+                    ORDER NOW
                   </Link>
+                  <button
+                    onClick={handleAddToCart}
+                    className="inline-flex items-center gap-2 transition-all duration-300"
+                    style={{
+                      height: 44, padding: "0 18px", borderRadius: 8,
+                      border: `1px solid ${cartAdded ? "rgba(34,197,94,0.6)" : "rgba(185,154,91,0.35)"}`,
+                      color: cartAdded ? "#22c55e" : "var(--text-muted)", fontSize: "0.62rem", letterSpacing: "0.18em", textTransform: "uppercase",
+                      backgroundColor: cartAdded ? "rgba(34,197,94,0.08)" : "transparent",
+                      cursor: "pointer", transition: "all .25s",
+                    }}
+                  >
+                    {cartAdded ? <Check size={13} strokeWidth={2} /> : <ShoppingCart size={13} strokeWidth={1.5} />}
+                    {cartAdded ? "ADDED ✓" : "ADD TO CART"}
+                  </button>
                 </motion.div>
                 <motion.p variants={fadeUp} className="text-[.58rem] tracking-[.14em] uppercase"
                   style={{ color: "var(--text-muted)", opacity: .5 }}>
@@ -491,15 +536,31 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                     ))}
                   </div>
 
-                  <Link
-                    href={`/checkout?product=${slug}`}
-                    className="flex items-center justify-center gap-2 transition-all duration-300"
-                    style={{ height: 44, borderRadius: 8, backgroundColor: "var(--gold)", color: "var(--bg)", fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.12)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
-                  >
-                    GET YOURS →
-                  </Link>
+                  <div style={{ display: "flex", gap: "0.65rem" }}>
+                    <Link
+                      href={`/checkout?product=${slug}`}
+                      className="flex items-center justify-center gap-2 transition-all duration-300"
+                      style={{ flex: 1, height: 44, borderRadius: 8, backgroundColor: "var(--gold)", color: "var(--bg)", fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.12)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+                    >
+                      ORDER NOW
+                    </Link>
+                    <button
+                      onClick={handleAddToCart}
+                      className="inline-flex items-center justify-center gap-2 transition-all duration-300"
+                      style={{
+                        height: 44, padding: "0 16px", borderRadius: 8,
+                        border: `1px solid ${cartAdded ? "rgba(34,197,94,0.6)" : "rgba(185,154,91,0.45)"}`,
+                        color: cartAdded ? "#22c55e" : "var(--gold)", fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase",
+                        backgroundColor: cartAdded ? "rgba(34,197,94,0.08)" : "rgba(185,154,91,0.06)",
+                        cursor: "pointer", transition: "all .25s", whiteSpace: "nowrap",
+                      }}
+                    >
+                      {cartAdded ? <Check size={13} strokeWidth={2} /> : <ShoppingCart size={13} strokeWidth={1.5} />}
+                      {cartAdded ? "ADDED ✓" : "ADD TO CART"}
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             </div>
