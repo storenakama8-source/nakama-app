@@ -1,11 +1,10 @@
 {
   "name": "nakama-store-morocco",
   "version": "0.1.0",
-  "main": "index.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node index.js",
+  "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
