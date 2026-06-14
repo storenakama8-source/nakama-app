@@ -15,15 +15,24 @@ export async function fetchGraphQL<T = unknown>(
 ): Promise<T> {
   const url = GRAPHQL_URL;
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ query, variables }),
-    next: revalidate !== undefined ? { revalidate } : undefined,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
+      next: revalidate !== undefined ? { revalidate } : undefined,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     throw new Error(
