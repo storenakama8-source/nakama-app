@@ -95,6 +95,7 @@ function ControlBtn({
         backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
         color: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center",
         cursor: "pointer", transition: "all .3s ease",
+        touchAction: "manipulation", pointerEvents: "auto", position: "relative",
       }}
       onMouseEnter={(e) => { const el = e.currentTarget; el.style.borderColor = "var(--gold)"; el.style.backgroundColor = "rgba(185,154,91,.18)"; }}
       onMouseLeave={(e) => { const el = e.currentTarget; el.style.borderColor = active ? "var(--gold)" : "rgba(185,154,91,.36)"; el.style.backgroundColor = active ? "rgba(185,154,91,.18)" : glassBg; }}
@@ -300,9 +301,9 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                 </motion.div>
               </motion.div>
 
-              {/* Image — absolute centered */}
+              {/* Image — absolute centered, pointer-events-none so controls receive touches */}
               <div className="absolute inset-0 flex flex-col items-center justify-center"
-                style={{ paddingBottom: 68 }}>
+                style={{ paddingBottom: 68, pointerEvents: "none" }}>
                 <motion.div
                   key={`m-stage-${slug}`}
                   initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }}
@@ -341,8 +342,8 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
               </div>
 
               {/* Controls — absolute right */}
-              <div className="absolute z-30 flex flex-col gap-3"
-                style={{ right: 14, top: "50%", transform: "translateY(-50%)" }}>
+              <div className="absolute flex flex-col gap-3"
+                style={{ right: 14, top: "50%", transform: "translateY(-50%)", zIndex: 50, isolation: "isolate" }}>
                 {ctrlBtns.map(({ Icon, label, handler, active }) => (
                   <ControlBtn key={label} Icon={Icon as React.ElementType} label={label} handler={handler} active={active} glassBg={glassBg} />
                 ))}

@@ -120,6 +120,7 @@ function SideControls({
             color: "var(--gold)",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", transition: "all .3s ease", flexShrink: 0,
+            touchAction: "manipulation", pointerEvents: "auto", position: "relative",
           }}
           onMouseEnter={(e) => {
             const el = e.currentTarget;
@@ -304,10 +305,10 @@ export default function HeroSection({ heroImageUrl = null }: { heroImageUrl?: st
               </motion.div>
             </motion.div>
 
-            {/* Product zone — centered */}
+            {/* Product zone — centered, pointer-events-none so controls receive touches */}
             <div
               className="absolute inset-0 flex flex-col items-center justify-center"
-              style={{ paddingBottom: 64 }}
+              style={{ paddingBottom: 64, pointerEvents: "none" }}
             >
               <motion.div
                 key={`mob-prod-${theme}`}
@@ -341,8 +342,8 @@ export default function HeroSection({ heroImageUrl = null }: { heroImageUrl?: st
 
             {/* Side controls — absolute right, vertically centered */}
             <div
-              className="absolute z-30 flex flex-col gap-3"
-              style={{ right: 14, top: "50%", transform: "translateY(-50%)" }}
+              className="absolute flex flex-col gap-3"
+              style={{ right: 14, top: "50%", transform: "translateY(-50%)", zIndex: 50, isolation: "isolate" }}
             >
               <SideControls
                 glassBg={glassBg}
