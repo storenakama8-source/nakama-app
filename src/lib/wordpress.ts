@@ -109,9 +109,9 @@ export interface AccessoryProduct {
 }
 
 const ACCESSORY_FALLBACK: AccessoryProduct[] = [
-  { databaseId: 0, slug: "display-stand",       name: "Display Stand",        price: 99, image: null },
-  { databaseId: 0, slug: "double-display-stand", name: "Double Display Stand", price: 99, image: null },
-  { databaseId: 0, slug: "wall-mount",           name: "Wall Mount",           price: 99, image: null },
+  { databaseId: 35, slug: "display-stand",       name: "Display Stand",        price: 99, image: null },
+  { databaseId: 37, slug: "double-display-stand", name: "Double Display Stand", price: 99, image: null },
+  { databaseId: 38, slug: "wall-mount",           name: "Wall Mount",           price: 99, image: null },
 ];
 
 /* ── Product fetchers ─────────────────────────────────────── */

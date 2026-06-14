@@ -282,19 +282,15 @@ export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhi
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
+    // Query by known database IDs — avoids relying on category slug matching
     fetch("https://admin.nakamastore.ma/graphql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: `{
-          products(first: 20, where: { status: "publish" }) {
-            nodes {
-              slug
-              image { sourceUrl }
-              productCategories { nodes { slug } }
-              ... on SimpleProduct { price }
-            }
-          }
+          wm:  product(id: "38", idType: DATABASE_ID) { image { sourceUrl } }
+          dds: product(id: "37", idType: DATABASE_ID) { image { sourceUrl } }
+          ds:  product(id: "35", idType: DATABASE_ID) { image { sourceUrl } }
         }`,
       }),
       signal: controller.signal,
@@ -302,15 +298,15 @@ export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhi
       .then((r) => r.json())
       .then((d) => {
         clearTimeout(timer);
-        const nodes = d?.data?.products?.nodes ?? [];
-        const accNodes = nodes.filter((p: { productCategories?: { nodes?: { slug: string }[] } }) =>
-          p.productCategories?.nodes?.some((c: { slug: string }) => c.slug === "accessories")
-        );
-        if (!accNodes.length) return;
+        const imgMap: Record<string, string | null> = {
+          "wall-mount":           d?.data?.wm?.image?.sourceUrl  ?? null,
+          "double-display-stand": d?.data?.dds?.image?.sourceUrl ?? null,
+          "display-stand":        d?.data?.ds?.image?.sourceUrl  ?? null,
+        };
         setLiveAccessories((prev) =>
           prev.map((acc) => {
-            const match = accNodes.find((n: { slug: string }) => n.slug === acc.slug);
-            return match ? { ...acc, image: match.image?.sourceUrl ?? acc.image } : acc;
+            const url = imgMap[acc.slug];
+            return url ? { ...acc, image: url } : acc;
           })
         );
       })
