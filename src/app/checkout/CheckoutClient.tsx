@@ -429,18 +429,38 @@ export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhi
         catNodes.find((n) => {
           if (n.slug === targetSlug) return true;
           const nm = (n.name ?? "").toLowerCase();
+
+          // Primary: all slug parts must be in the product name
           const allParts = targetSlug.split("-");
-          return (
+          if (
             allParts.every((p) => nm.includes(p)) &&
             !(excludeKeyword && nm.includes(excludeKeyword))
-          );
+          ) return true;
+
+          // Secondary: strip color prefix and match generic name,
+          // excluding the opposite colour so black/white don't cross
+          if (targetSlug.startsWith("black-") || targetSlug.startsWith("white-")) {
+            const opposite = targetSlug.startsWith("black-") ? "white" : "black";
+            const genericSlug = targetSlug.replace(/^(?:black|white)-/, "");
+            const genericParts = genericSlug.split("-");
+            return (
+              genericParts.every((p) => nm.includes(p)) &&
+              !nm.includes(opposite) &&
+              !(excludeKeyword && nm.includes(excludeKeyword))
+            );
+          }
+          return false;
         });
       if (!match) return fallback;
       return {
         databaseId: match.databaseId || fallback.databaseId,
         slug:       targetSlug,
-        name:       match.name || fallback.name,
-        price:      parseInt((match.price ?? "99").replace(/[^0-9]/g, ""), 10) || 99,
+        // Always show the intended colour name (e.g. "Black Wall Mount"),
+        // even when resolved from a generic WooCommerce product ("Wall Mount")
+        name:       fallback.name,
+        // Fix: parseFloat preserves the decimal, Math.round removes .00
+        // parseInt("99.00".replace(/[^0-9]/g,"")) was returning 9900
+        price:      Math.round(parseFloat((match.price ?? "99").replace(/[^\d.]/g, "")) || 99),
         image:      match.image?.sourceUrl ?? fallback.image,
       };
     }
@@ -460,6 +480,9 @@ export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhi
           wwm:  product(id:"white-wall-mount",            idType:SLUG){ databaseId name image{sourceUrl} ...on SimpleProduct{price} }
           wdds: product(id:"white-double-display-stand",  idType:SLUG){ databaseId name image{sourceUrl} ...on SimpleProduct{price} }
           wds:  product(id:"white-display-stand",         idType:SLUG){ databaseId name image{sourceUrl} ...on SimpleProduct{price} }
+          gwm:  product(id:"wall-mount",                  idType:SLUG){ databaseId name image{sourceUrl} ...on SimpleProduct{price} }
+          gdds: product(id:"double-display-stand",        idType:SLUG){ databaseId name image{sourceUrl} ...on SimpleProduct{price} }
+          gds:  product(id:"display-stand",               idType:SLUG){ databaseId name image{sourceUrl} ...on SimpleProduct{price} }
           bd:   product(id:"black-dragon",                idType:SLUG){ image{sourceUrl} }
           wd:   product(id:"white-dragon",                idType:SLUG){ image{sourceUrl} }
         }`,
@@ -474,10 +497,12 @@ export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhi
         setClientBlackImg(dt.bd?.image?.sourceUrl ?? null);
         setClientWhiteImg(dt.wd?.image?.sourceUrl ?? null);
 
+        // dt.bwm = black-specific product (if it exists in WooCommerce)
+        // dt.gwm = generic "wall-mount" product (fallback when black-* slug not found)
         setBlackAccs([
-          resolveAcc(dt.bwm,  catNodes, "black-wall-mount",           INIT_BLACK_ACCS[0]),
-          resolveAcc(dt.bdds, catNodes, "black-double-display-stand", INIT_BLACK_ACCS[1]),
-          resolveAcc(dt.bds,  catNodes, "black-display-stand",        INIT_BLACK_ACCS[2], "double"),
+          resolveAcc(dt.bwm  ?? dt.gwm,  catNodes, "black-wall-mount",           INIT_BLACK_ACCS[0]),
+          resolveAcc(dt.bdds ?? dt.gdds,  catNodes, "black-double-display-stand", INIT_BLACK_ACCS[1]),
+          resolveAcc(dt.bds  ?? dt.gds,   catNodes, "black-display-stand",        INIT_BLACK_ACCS[2], "double"),
         ]);
         setWhiteAccs([
           resolveAcc(dt.wwm,  catNodes, "white-wall-mount",           INIT_WHITE_ACCS[0]),
