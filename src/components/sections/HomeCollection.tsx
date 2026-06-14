@@ -26,7 +26,11 @@ const DRAGONS = [
   },
 ] as const;
 
-export default function HomeCollection() {
+interface Props {
+  images?: { "black-dragon"?: string | null; "white-dragon"?: string | null };
+}
+
+export default function HomeCollection({ images = {} }: Props) {
   const { theme } = useTheme();
   const isBlack = theme === "black-dragon";
 
@@ -66,7 +70,9 @@ export default function HomeCollection() {
           margin: "0 auto",
         }}
       >
-        {DRAGONS.map(({ slug, ar, ja, title, tagline, desc, bg }, i) => (
+        {DRAGONS.map(({ slug, ar, ja, title, tagline, desc, bg }, i) => {
+          const imgSrc = images[slug] ?? null;
+          return (
           <motion.div
             key={slug}
             initial={{ opacity: 0, y: 24 }}
@@ -112,9 +118,17 @@ export default function HomeCollection() {
                 <p className="arabic-kicker" style={{ fontSize: "clamp(1.1rem,2vw,1.5rem)", marginBottom: "0.2rem" }}>{ar}</p>
                 <p style={{ color: "var(--gold)", opacity: 0.65, fontSize: "0.68rem", letterSpacing: "0.34em", textTransform: "uppercase", marginBottom: "1.2rem" }}>{ja}</p>
 
-                {/* Empty stage */}
+                {/* Product image */}
                 <div style={{ height: "clamp(160px,18vw,220px)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
-                  <div style={{ width: 2, height: "75%", borderRadius: 1, background: `rgba(185,154,91,${isBlack ? 0.07 : 0.11})` }} />
+                  {imgSrc ? (
+                    <img
+                      src={imgSrc}
+                      alt={title}
+                      style={{ maxHeight: "100%", maxWidth: "60%", objectFit: "contain", filter: bg === "black" ? "drop-shadow(0 8px 24px rgba(0,0,0,0.6))" : "drop-shadow(0 8px 24px rgba(95,65,30,0.22))" }}
+                    />
+                  ) : (
+                    <div style={{ width: 2, height: "75%", borderRadius: 1, background: `rgba(185,154,91,${isBlack ? 0.07 : 0.11})` }} />
+                  )}
                 </div>
 
                 <h3 className="font-heading" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", lineHeight: 0.92, color: "var(--text)", marginBottom: "0.4rem", letterSpacing: "0.04em" }}>{title}</h3>
@@ -127,7 +141,8 @@ export default function HomeCollection() {
               </div>
             </Link>
           </motion.div>
-        ))}
+        );
+        })}
       </div>
 
       {/* CTA */}

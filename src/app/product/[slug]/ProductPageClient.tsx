@@ -246,7 +246,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                 key={`m-copy-${slug}`}
                 variants={stagger} initial="hidden" animate="visible"
                 className="absolute z-20"
-                style={{ top: 10, left: 20, maxWidth: "min(54vw, 228px)", textAlign: "left" }}
+                style={{ top: 10, left: 20, maxWidth: "min(54vw, 228px)", textAlign: "left", opacity: isFocusMode ? 0 : 1, pointerEvents: isFocusMode ? "none" : "auto", transition: "opacity 0.4s ease" }}
               >
                 <motion.p variants={fadeUp} className="arabic-kicker"
                   style={{ fontSize: "clamp(1.15rem,5vw,1.55rem)", marginBottom: "0.25rem", textShadow }}>

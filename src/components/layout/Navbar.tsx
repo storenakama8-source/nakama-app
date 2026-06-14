@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { ShoppingBag, Menu, X, ChevronRight, MessageCircle, AtSign, Mail } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -40,7 +41,16 @@ const CONTACTS = [
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const { totalCount } = useCart();
+  const pathname = usePathname();
+  const router   = useRouter();
   const isBlack  = theme === "black-dragon";
+
+  function handleMobilePill(slug: "black-dragon" | "white-dragon") {
+    setTheme(slug);
+    if (pathname.startsWith("/product/")) {
+      router.push(`/product/${slug}`);
+    }
+  }
   const [scrolled,  setScrolled]  = useState(false);
   const [menuOpen,  setMenuOpen]  = useState(false);
 
@@ -133,7 +143,7 @@ export default function Navbar() {
                 return (
                   <button
                     key={slug}
-                    onClick={() => setTheme(slug)}
+                    onClick={() => handleMobilePill(slug)}
                     title={slug === "black-dragon" ? "Black Dragon" : "White Dragon"}
                     style={{
                       borderRadius: 999,

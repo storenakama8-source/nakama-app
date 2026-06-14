@@ -246,7 +246,7 @@ export default function HeroSection({ heroImageUrl = null }: { heroImageUrl?: st
               initial="hidden"
               animate="visible"
               className="absolute z-20"
-              style={{ top: 12, left: 20, maxWidth: "min(52vw, 220px)", textAlign: "left" }}
+              style={{ top: 12, left: 20, maxWidth: "min(52vw, 220px)", textAlign: "left", opacity: isFocusMode ? 0 : 1, pointerEvents: isFocusMode ? "none" : "auto", transition: "opacity 0.4s ease" }}
             >
               {/* Arabic decorative label */}
               <motion.p variants={fadeUp}
