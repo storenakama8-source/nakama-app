@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -207,51 +208,146 @@ function AccessoryRow({ acc, qty, onChange, isBundleGift, isBlack, isLast }: {
   isBundleGift: boolean; isBlack: boolean; isLast: boolean;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [zoomed, setZoomed]       = useState(false);
   const showImg = !!acc.image && !imgFailed;
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: "0.75rem",
-      padding: "0.75rem 0",
-      borderBottom: isLast ? "none" : "1px solid rgba(185,154,91,0.08)",
-    }}>
-      <div style={{
-        width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
-        backgroundColor: isBlack ? "#111108" : "#f0e8d4",
-        border: "1px solid rgba(185,154,91,0.22)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: showImg ? 4 : 0,
-      }}>
-        {showImg ? (
-          <img
-            src={acc.image!}
-            alt={acc.name}
-            onError={() => setImgFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />
-        ) : (
-          <AccessoryIcon slug={acc.slug} />
-        )}
-      </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: "0.74rem", color: "var(--text)", fontWeight: 500, lineHeight: 1.25, marginBottom: 2 }}>
-          {acc.name}
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: "0.6rem", color: "var(--gold)", opacity: 0.8 }}>{acc.price} DH</span>
-          {isBundleGift && (
-            <span style={{
-              fontSize: "0.44rem", backgroundColor: "rgba(185,154,91,0.14)", color: "var(--gold)",
-              padding: "1px 6px", borderRadius: 4, letterSpacing: "0.08em",
-            }}>
-              × 1 FREE WITH BUNDLE
-            </span>
+  /* Escape to close + scroll-lock while open */
+  useEffect(() => {
+    if (!zoomed) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setZoomed(false); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [zoomed]);
+
+  return (
+    <>
+      <div style={{
+        display: "flex", alignItems: "center", gap: "0.75rem",
+        padding: "0.75rem 0",
+        borderBottom: isLast ? "none" : "1px solid rgba(185,154,91,0.08)",
+      }}>
+        {/* Thumbnail — clickable when image is available */}
+        <div
+          onClick={() => { if (showImg) setZoomed(true); }}
+          title={showImg ? "Click to zoom" : undefined}
+          style={{
+            width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
+            backgroundColor: isBlack ? "#111108" : "#f0e8d4",
+            border: `1px solid ${showImg && !zoomed ? "rgba(185,154,91,0.4)" : "rgba(185,154,91,0.22)"}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: showImg ? 4 : 0,
+            cursor: showImg ? "zoom-in" : "default",
+            transition: "border-color .2s, transform .15s",
+          }}
+          onMouseEnter={(e) => { if (showImg) (e.currentTarget as HTMLElement).style.transform = "scale(1.06)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; }}
+        >
+          {showImg ? (
+            <img
+              src={acc.image!}
+              alt={acc.name}
+              onError={() => setImgFailed(true)}
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          ) : (
+            <AccessoryIcon slug={acc.slug} />
           )}
         </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: "0.74rem", color: "var(--text)", fontWeight: 500, lineHeight: 1.25, marginBottom: 2 }}>
+            {acc.name}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: "0.6rem", color: "var(--gold)", opacity: 0.8 }}>{acc.price} DH</span>
+            {isBundleGift && (
+              <span style={{
+                fontSize: "0.44rem", backgroundColor: "rgba(185,154,91,0.14)", color: "var(--gold)",
+                padding: "1px 6px", borderRadius: 4, letterSpacing: "0.08em",
+              }}>
+                × 1 FREE WITH BUNDLE
+              </span>
+            )}
+          </div>
+        </div>
+
+        <MiniStepper value={qty} onChange={onChange} />
       </div>
 
-      <MiniStepper value={qty} onChange={onChange} />
-    </div>
+      {/* Zoom lightbox — rendered at document.body via portal */}
+      {zoomed && showImg && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={acc.name}
+          onClick={() => setZoomed(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            backgroundColor: "rgba(0,0,0,0.92)",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            padding: "clamp(1rem,5vw,2.5rem)",
+            cursor: "zoom-out",
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: "relative", cursor: "default" }}
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setZoomed(false)}
+              style={{
+                position: "absolute", top: -14, right: -14,
+                width: 32, height: 32, borderRadius: "50%",
+                border: "1px solid rgba(185,154,91,0.35)",
+                backgroundColor: "rgba(5,5,4,0.95)",
+                color: "rgba(185,154,91,0.85)",
+                fontSize: "1rem", lineHeight: 1,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", zIndex: 1,
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Full-size image */}
+            <img
+              src={acc.image!}
+              alt={acc.name}
+              style={{
+                display: "block",
+                maxWidth: "min(88vw, 460px)",
+                maxHeight: "72vh",
+                objectFit: "contain",
+                borderRadius: 16,
+                border: "1px solid rgba(185,154,91,0.28)",
+                boxShadow: "0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(185,154,91,0.06)",
+              }}
+            />
+
+            {/* Caption */}
+            <p style={{
+              textAlign: "center",
+              color: "rgba(185,154,91,0.65)",
+              fontSize: "0.62rem", letterSpacing: "0.2em",
+              textTransform: "uppercase", marginTop: "1.1rem",
+            }}>
+              {acc.name}
+            </p>
+          </motion.div>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }
 
