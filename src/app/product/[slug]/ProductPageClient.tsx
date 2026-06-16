@@ -5,7 +5,7 @@ import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import {
   Eye, EyeOff, Plus, Minus, Share2,
-  ArrowLeft, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   Phone, LayoutGrid, Info, Star,
   Shield, Ruler, Package, Truck, ShoppingCart, Check,
 } from "lucide-react";
@@ -49,7 +49,7 @@ const STATIC = {
 type ValidSlug = keyof typeof STATIC;
 
 /* ─── thumbnail labels ─────────────────────────────────── */
-const THUMB_LABELS = ["FULL VIEW", "TSUBA", "HANDLE", "ENGRAVING", "KASHIRA"];
+const THUMB_LABELS = ["FULL VIEW", "KASHIRA", "HANDLE", "TSUBA", "ENGRAVING"];
 
 /* ─── specifications ───────────────────────────────────── */
 const SPECS = [
@@ -228,16 +228,22 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
         ══════════════════════════════════════════════ */}
         <section className="relative overflow-hidden" style={{ minHeight: "100svh" }}>
 
-          {/* Responsive background — same pattern as HeroSection */}
+          {/* Responsive background — 1x + 2x (4K) srcset */}
           <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
             <picture style={{ display: "block", position: "absolute", inset: 0 }}>
-              <source media="(min-width:768px)" srcSet={`/images/hero/hero-${st.bgKey}-desktop.png`} />
+              <source
+                media="(min-width:768px)"
+                srcSet={`/images/hero/hero-${st.bgKey}-desktop.png 1x, /images/hero/hero-${st.bgKey}-desktop@2x.png 2x`}
+              />
+              <source
+                srcSet={`/images/hero/hero-${st.bgKey}-mobile.png 1x, /images/hero/hero-${st.bgKey}-mobile@2x.png 2x`}
+              />
               <img
                 src={`/images/hero/hero-${st.bgKey}-mobile.png`}
                 alt=""
                 fetchPriority="high"
                 className="hero-bg-img"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", imageRendering: "auto" }}
               />
             </picture>
           </div>
@@ -251,25 +257,8 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
           {/* Content */}
           <div className="relative" style={{ zIndex: 10, minHeight: "100svh", paddingTop: "76px" }}>
 
-            {/* Breadcrumb */}
-            <div className="px-5 md:px-10 pt-3" style={{ height: 36 }}>
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: .6, delay: .1 }}
-              >
-                <Link
-                  href="/catalogue"
-                  className="inline-flex items-center gap-1.5 transition-opacity duration-300"
-                  style={{ color: "var(--gold)", fontSize: "0.58rem", letterSpacing: "0.28em", textTransform: "uppercase", opacity: .78 }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.78"; }}
-                >
-                  <ArrowLeft size={10} strokeWidth={1.5} />
-                  {st.breadcrumb}
-                </Link>
-              </motion.div>
-            </div>
+            {/* Breadcrumb spacer — content hidden, height kept for layout calc */}
+            <div style={{ height: 36 }} />
 
             {/* ── MOBILE ── */}
             <div className="relative md:hidden" style={{ height: "calc(100svh - 76px - 36px)" }}>
