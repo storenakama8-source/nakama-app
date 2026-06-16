@@ -132,6 +132,15 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
     thumbScrollRef.current?.scrollBy({ left: dir === "right" ? 110 : -110, behavior: "smooth" });
   };
 
+  /* Thumbnail click: select image + hide description + scroll hero into view */
+  function handleThumbnailClick(index: number) {
+    setActiveThumb(index);
+    setIsFocusMode(true);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
   function handleAddToCart() {
     const priceNum = parseInt(priceStr.replace(/[^0-9]/g, ""), 10) || 1399;
     addToCart({
@@ -303,7 +312,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                 <motion.div
                   key={`m-stage-${slug}`}
                   initial={{ opacity: 0, y: 22 }}
-                  animate={{ opacity: 1, y: activeThumb > 0 ? 65 : 0 }}
+                  animate={{ opacity: 1, y: activeThumb > 0 ? 72 : 0 }}
                   transition={{ duration: activeThumb > 0 ? 0.45 : 1.2, ease: "easeOut", delay: activeThumb > 0 ? 0 : .3 }}
                   className="flex flex-col items-center"
                 >
@@ -317,18 +326,19 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                       transition={{ duration: 0.25, ease: "easeOut" }}
                       style={{
                         height: activeThumb > 0
-                          ? "clamp(200px, 30svh, 300px)"
-                          : "clamp(440px, 62svh, 680px)",
+                          ? "clamp(300px, 50svh, 500px)"
+                          : "clamp(460px, 65svh, 700px)",
                         width: "auto",
-                        maxWidth: activeThumb > 0 ? "min(76vw, 380px)" : "min(64vw, 340px)",
+                        maxWidth: activeThumb > 0 ? "min(88vw, 480px)" : "min(70vw, 380px)",
                         objectFit: "contain",
                         display: "block",
                         transformOrigin: "center bottom",
+                        objectPosition: activeThumb > 0 ? "center bottom" : "center center",
                         filter: imgFilter,
                       }}
                     />
                   ) : (
-                    <div style={{ height: "clamp(440px,62svh,680px)" }} />
+                    <div style={{ height: "clamp(460px,65svh,700px)" }} />
                   )}
                   <div style={{ marginTop: activeImage ? -10 : 0 }}>
                     <PlatformRings />
@@ -564,7 +574,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                 ? allImages.map((src, i) => (
                     <button
                       key={`${src}-${i}`}
-                      onClick={() => setActiveThumb(i)}
+                      onClick={() => handleThumbnailClick(i)}
                       style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem", background: "none", border: "none", padding: 0, cursor: "pointer" }}
                     >
                       <div style={{
@@ -583,7 +593,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                 : THUMB_LABELS.map((label, i) => (
                     <button
                       key={label}
-                      onClick={() => setActiveThumb(i)}
+                      onClick={() => handleThumbnailClick(i)}
                       style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem", background: "none", border: "none", cursor: "pointer" }}
                     >
                       <div style={{
@@ -602,6 +612,60 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
                   ))
               }
             </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════
+            MOBILE-ONLY ACTION BUTTONS — directly after thumbnails
+        ══════════════════════════════════════════════ */}
+        <section className="md:hidden" style={{
+          backgroundColor: "var(--bg)",
+          padding: "1.25rem clamp(1rem,4vw,2rem) 1.5rem",
+          borderBottom: "1px solid rgba(185,154,91,0.10)",
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem", alignItems: "stretch" }}>
+            <Link
+              href={`/checkout?product=${slug}`}
+              className="flex items-center justify-center gap-2 transition-all duration-300"
+              style={{
+                height: 54, borderRadius: 12,
+                backgroundColor: "var(--gold)", color: "var(--bg)",
+                fontSize: "0.68rem", letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 700,
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+            >
+              ORDER NOW
+            </Link>
+            <button
+              onClick={handleAddToCart}
+              className="flex items-center justify-center gap-2 transition-all duration-300"
+              style={{
+                height: 50, borderRadius: 12,
+                border: `1px solid ${cartAdded ? "rgba(34,197,94,0.6)" : "rgba(185,154,91,0.45)"}`,
+                color: cartAdded ? "#22c55e" : "var(--gold)",
+                fontSize: "0.64rem", letterSpacing: "0.18em", textTransform: "uppercase",
+                backgroundColor: cartAdded ? "rgba(34,197,94,0.08)" : "rgba(185,154,91,0.06)",
+                cursor: "pointer", transition: "all .25s",
+              }}
+            >
+              {cartAdded ? <Check size={14} strokeWidth={2} /> : <ShoppingCart size={14} strokeWidth={1.5} />}
+              {cartAdded ? "ADDED ✓" : "ADD TO CART"}
+            </button>
+            <Link
+              href="/catalogue"
+              className="flex items-center justify-center gap-2 transition-all duration-300"
+              style={{
+                height: 46, borderRadius: 12,
+                border: "1px solid rgba(185,154,91,0.32)", color: "var(--text-muted)",
+                fontSize: "0.62rem", letterSpacing: "0.18em", textTransform: "uppercase",
+              }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(185,154,91,0.65)"; el.style.color = "var(--gold)"; }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(185,154,91,0.32)"; el.style.color = "var(--text-muted)"; }}
+            >
+              <LayoutGrid size={14} strokeWidth={1.5} />
+              CATALOGUE
+            </Link>
           </div>
         </section>
 
@@ -644,9 +708,9 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
         </section>
 
         {/* ══════════════════════════════════════════════
-            ACTION BUTTONS — below thumbnails, all screen sizes
+            ACTION BUTTONS — desktop only (mobile version is above specs)
         ══════════════════════════════════════════════ */}
-        <section style={{
+        <section className="hidden md:block" style={{
           backgroundColor: "var(--bg)",
           padding: "1.5rem clamp(1.5rem,5vw,4rem) clamp(2rem,4vw,3rem)",
           borderBottom: "1px solid rgba(185,154,91,0.10)",

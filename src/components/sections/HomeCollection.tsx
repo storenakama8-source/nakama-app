@@ -67,24 +67,62 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
         position: "relative",
         backgroundColor: "var(--bg)",
         padding: showHero
-          ? "clamp(5.5rem,10vw,9rem) clamp(1.5rem,5vw,4rem) clamp(4rem,8vw,7rem)"
-          : "clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)",
+          ? "clamp(5.5rem,10vw,9rem) clamp(1.25rem,4vw,3.5rem) clamp(4rem,8vw,7rem)"
+          : "clamp(4rem,8vw,7rem) clamp(1.25rem,4vw,3.5rem)",
       }}
     >
-      {/* Atmospheric background — only on homepage */}
+      {/* ── Atmospheric background ── */}
       {showHero && (
         <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
+          {/* Top gold glow */}
           <div style={{
             position: "absolute", inset: 0,
             background: isBlack
-              ? "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(185,154,91,0.07) 0%, transparent 70%)"
-              : "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(185,154,91,0.10) 0%, transparent 70%)",
+              ? "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(185,154,91,0.10) 0%, transparent 65%)"
+              : "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(185,154,91,0.15) 0%, transparent 65%)",
           }} />
+          {/* Bottom fade */}
           <div style={{
-            position: "absolute", bottom: 0, left: 0, right: 0, height: "40%",
+            position: "absolute", bottom: 0, left: 0, right: 0, height: "45%",
             background: isBlack
-              ? "linear-gradient(180deg, transparent, rgba(5,5,5,0.6))"
-              : "linear-gradient(180deg, transparent, rgba(247,242,232,0.6))",
+              ? "linear-gradient(180deg, transparent, rgba(5,5,5,0.75))"
+              : "linear-gradient(180deg, transparent, rgba(247,242,232,0.75))",
+          }} />
+          {/* Left vignette */}
+          <div style={{
+            position: "absolute", left: 0, top: 0, bottom: 0, width: "28%",
+            background: isBlack
+              ? "linear-gradient(90deg, rgba(5,5,5,0.55), transparent)"
+              : "linear-gradient(90deg, rgba(247,242,232,0.40), transparent)",
+          }} />
+          {/* Right vignette */}
+          <div style={{
+            position: "absolute", right: 0, top: 0, bottom: 0, width: "28%",
+            background: isBlack
+              ? "linear-gradient(270deg, rgba(5,5,5,0.55), transparent)"
+              : "linear-gradient(270deg, rgba(247,242,232,0.40), transparent)",
+          }} />
+          {/* Mid atmospheric depth — simulates smoke/cloud */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: isBlack
+              ? "radial-gradient(ellipse 55% 38% at 20% 65%, rgba(185,154,91,0.035) 0%, transparent 70%), radial-gradient(ellipse 45% 32% at 80% 38%, rgba(120,90,40,0.05) 0%, transparent 70%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(185,154,91,0.025) 0%, transparent 70%)"
+              : "radial-gradient(ellipse 55% 38% at 20% 65%, rgba(185,154,91,0.07) 0%, transparent 70%), radial-gradient(ellipse 45% 32% at 80% 38%, rgba(185,154,91,0.06) 0%, transparent 70%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(185,154,91,0.05) 0%, transparent 70%)",
+          }} />
+          {/* Subtle noise grain */}
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E\")",
+            backgroundSize: "256px 256px",
+            opacity: isBlack ? 0.045 : 0.03,
+            mixBlendMode: "overlay",
+          }} />
+          {/* Corner vignette */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: isBlack
+              ? "radial-gradient(ellipse 120% 100% at 50% 50%, transparent 40%, rgba(5,5,5,0.55) 100%)"
+              : "radial-gradient(ellipse 120% 100% at 50% 50%, transparent 40%, rgba(247,242,232,0.45) 100%)",
           }} />
         </div>
       )}
@@ -96,7 +134,7 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.7 }}
-          style={{ textAlign: "center", marginBottom: "clamp(2.5rem,5vw,4rem)" }}
+          style={{ textAlign: "center", marginBottom: "clamp(2rem,4.5vw,3.5rem)" }}
         >
           {showHero && (
             <p className="arabic-kicker" style={{ fontSize: "clamp(1.2rem,2.5vw,1.6rem)", marginBottom: "0.4rem" }}>
@@ -125,88 +163,122 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
             gap: "clamp(1rem,2.5vw,2rem)",
-            maxWidth: 980,
+            maxWidth: 1040,
             margin: "0 auto",
           }}
         >
           {DRAGONS.map(({ slug, ar, ja, title, tagline, desc, bg }, i) => {
             const imgSrc = images[slug] ?? clientImages[slug] ?? null;
+            const isBlackCard = bg === "black";
             return (
-            <motion.div
-              key={slug}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.65, delay: i * 0.12 }}
-            >
-              <Link
-                href={`/product/${slug}`}
-                style={{
-                  display: "block",
-                  position: "relative",
-                  borderRadius: 14,
-                  overflow: "hidden",
-                  border: "1px solid rgba(185,154,91,0.2)",
-                  transition: "border-color 0.35s ease, transform 0.35s ease",
-                  textDecoration: "none",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.borderColor = "rgba(185,154,91,0.6)";
-                  el.style.transform = "translateY(-6px)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.borderColor = "rgba(185,154,91,0.2)";
-                  el.style.transform = "";
-                }}
+              <motion.div
+                key={slug}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.65, delay: i * 0.12 }}
               >
-                {/* BG */}
-                <div style={{
-                  position: "absolute", inset: 0, zIndex: 0,
-                  backgroundImage: `url(/images/hero/hero-${bg}-desktop.png)`,
-                  backgroundSize: "cover", backgroundPosition: "center",
-                }} />
-                <div style={{
-                  position: "absolute", inset: 0, zIndex: 1,
-                  backgroundColor: isBlack ? "rgba(4,4,4,0.72)" : "rgba(248,243,233,0.76)",
-                }} />
+                <Link
+                  href={`/product/${slug}`}
+                  style={{
+                    display: "block",
+                    position: "relative",
+                    borderRadius: 16,
+                    overflow: "hidden",
+                    border: `1px solid rgba(185,154,91,${isBlackCard ? 0.22 : 0.28})`,
+                    transition: "border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease",
+                    textDecoration: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "rgba(185,154,91,0.65)";
+                    el.style.transform = "translateY(-6px)";
+                    el.style.boxShadow = "0 24px 60px rgba(0,0,0,0.36)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = `rgba(185,154,91,${isBlackCard ? 0.22 : 0.28})`;
+                    el.style.transform = "";
+                    el.style.boxShadow = "";
+                  }}
+                >
+                  {/* Card background */}
+                  <div style={{
+                    position: "absolute", inset: 0, zIndex: 0,
+                    backgroundImage: `url(/images/hero/hero-${bg}-desktop.png)`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                  }} />
+                  {/* Card overlay */}
+                  <div style={{
+                    position: "absolute", inset: 0, zIndex: 1,
+                    backgroundColor: isBlack
+                      ? (isBlackCard ? "rgba(4,4,4,0.74)" : "rgba(4,4,4,0.70)")
+                      : (isBlackCard ? "rgba(4,4,4,0.72)" : "rgba(248,243,233,0.78)"),
+                  }} />
+                  {/* Atmospheric depth overlay */}
+                  <div style={{
+                    position: "absolute", inset: 0, zIndex: 1,
+                    background: isBlackCard
+                      ? "radial-gradient(ellipse 80% 60% at 50% 30%, rgba(185,154,91,0.06) 0%, transparent 70%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.45) 100%)"
+                      : "radial-gradient(ellipse 80% 60% at 50% 30%, rgba(185,154,91,0.09) 0%, transparent 70%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.18) 100%)",
+                  }} />
 
-                {/* Content */}
-                <div style={{ position: "relative", zIndex: 2, padding: "clamp(1.5rem,3vw,2.2rem)" }}>
-                  <p className="arabic-kicker" style={{ fontSize: "clamp(1.1rem,2vw,1.5rem)", marginBottom: "0.2rem" }}>{ar}</p>
-                  <p style={{ color: "var(--gold)", opacity: 0.65, fontSize: "0.68rem", letterSpacing: "0.34em", textTransform: "uppercase", marginBottom: "1.2rem" }}>{ja}</p>
+                  {/* Content */}
+                  <div style={{ position: "relative", zIndex: 2, padding: "clamp(1.25rem,3vw,2rem)" }}>
+                    {/* Labels */}
+                    <div style={{ marginBottom: "0.6rem" }}>
+                      <p className="arabic-kicker" style={{ fontSize: "clamp(1.1rem,2vw,1.5rem)", marginBottom: "0.15rem" }}>{ar}</p>
+                      <p style={{ color: "var(--gold)", opacity: 0.65, fontSize: "0.65rem", letterSpacing: "0.34em", textTransform: "uppercase" }}>{ja}</p>
+                    </div>
 
-                  {/* Product image */}
-                  <div style={{ height: "clamp(160px,18vw,220px)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
-                    {imgSrc ? (
-                      <img
-                        src={imgSrc}
-                        alt={title}
-                        style={{ maxHeight: "100%", maxWidth: "60%", objectFit: "contain", filter: bg === "black" ? "drop-shadow(0 8px 24px rgba(0,0,0,0.6))" : "drop-shadow(0 8px 24px rgba(95,65,30,0.22))" }}
-                      />
-                    ) : (
-                      <div style={{ width: 2, height: "75%", borderRadius: 1, background: `rgba(185,154,91,${isBlack ? 0.07 : 0.11})` }} />
-                    )}
+                    {/* Product image — DOMINANT */}
+                    <div className="home-card-img-wrap">
+                      {imgSrc ? (
+                        <img
+                          src={imgSrc}
+                          alt={title}
+                          style={{
+                            maxHeight: "100%",
+                            maxWidth: "90%",
+                            width: "auto",
+                            objectFit: "contain",
+                            filter: isBlackCard
+                              ? "drop-shadow(0 12px 32px rgba(0,0,0,0.75)) drop-shadow(0 0 18px rgba(185,154,91,0.15))"
+                              : "drop-shadow(0 10px 28px rgba(95,65,30,0.32)) drop-shadow(0 0 20px rgba(185,154,91,0.22))",
+                          }}
+                        />
+                      ) : (
+                        <div style={{ width: 2, height: "65%", borderRadius: 1, background: `rgba(185,154,91,${isBlack ? 0.07 : 0.11})` }} />
+                      )}
+                    </div>
+
+                    {/* Title + tagline */}
+                    <h3 className="font-heading" style={{ fontSize: "clamp(1.6rem,3.5vw,2.2rem)", lineHeight: 0.92, color: "var(--text)", marginBottom: "0.3rem", letterSpacing: "0.04em" }}>{title}</h3>
+                    <p style={{ color: "var(--gold)", fontSize: "0.54rem", letterSpacing: "0.2em", marginBottom: "0.7rem" }}>{tagline}</p>
+
+                    {/* Description — hidden on mobile to prioritize image */}
+                    <p className="hidden sm:block" style={{ color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1rem" }}>{desc}</p>
+
+                    {/* Price */}
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: "1rem" }}>
+                      <span className="font-heading" style={{ fontSize: "clamp(1.5rem,3vw,1.9rem)", color: "var(--text)", lineHeight: 1 }}>1,399</span>
+                      <span style={{ color: "var(--gold)", fontSize: "0.55rem", letterSpacing: "0.22em" }}>DH</span>
+                    </div>
+
+                    {/* CTA */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--gold)", fontSize: "0.62rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                      VIEW DETAILS <ChevronRight size={12} strokeWidth={1.5} />
+                    </div>
                   </div>
-
-                  <h3 className="font-heading" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", lineHeight: 0.92, color: "var(--text)", marginBottom: "0.4rem", letterSpacing: "0.04em" }}>{title}</h3>
-                  <p style={{ color: "var(--gold)", fontSize: "0.55rem", letterSpacing: "0.2em", marginBottom: "0.75rem" }}>{tagline}</p>
-                  <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>{desc}</p>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--gold)", fontSize: "0.62rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                    VIEW DETAILS <ChevronRight size={12} strokeWidth={1.5} />
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          );
+                </Link>
+              </motion.div>
+            );
           })}
         </div>
 
-        {/* CTA */}
+        {/* Bottom CTA */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}

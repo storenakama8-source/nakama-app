@@ -4,10 +4,9 @@ import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { MessageCircle, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronRight, ArrowRight, ShoppingBag } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { PageShell } from "@/components/shared/PageShell";
-import { site } from "@/data/site";
 import type { WCProduct } from "@/lib/woocommerce";
 import { stripHtml, formatPrice } from "@/lib/woocommerce";
 
@@ -83,10 +82,6 @@ function mergeWithWC(
 function DragonCard({ dragon, priority }: { dragon: DragonData; priority: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const whatsappMsg = encodeURIComponent(
-    `مرحبا، أريد طلب كاتانا ${dragon.title} — Nakama Store Morocco`
-  );
-  const whatsappHref = `https://wa.me/${site.whatsapp.replace(/\D/g, "")}?text=${whatsappMsg}`;
 
   function onEnter() {
     if (!ref.current) return;
@@ -210,10 +205,8 @@ function DragonCard({ dragon, priority }: { dragon: DragonData; priority: boolea
           >
             VIEW DETAILS <ArrowRight size={12} strokeWidth={2} />
           </Link>
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={`/checkout?product=${dragon.slug}`}
             className="flex items-center gap-2 transition-all duration-300"
             style={{
               height: 46, padding: "0 18px", borderRadius: 8,
@@ -225,8 +218,8 @@ function DragonCard({ dragon, priority }: { dragon: DragonData; priority: boolea
             onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(255,255,255,0.08)"; el.style.color = "#ffffff"; }}
             onClick={(e) => e.stopPropagation()}
           >
-            <MessageCircle size={12} /> ORDER
-          </a>
+            <ShoppingBag size={12} /> ORDER NOW
+          </Link>
         </div>
       </div>
     </div>
@@ -238,7 +231,6 @@ function DragonCard({ dragon, priority }: { dragon: DragonData; priority: boolea
 export default function CatalogueClient({ wcProducts }: { wcProducts: WCProduct[] }) {
   const { theme } = useTheme();
   const isBlack = theme === "black-dragon";
-  const whatsappHref = `https://wa.me/${site.whatsapp.replace(/\D/g, "")}`;
 
   const dragons = STATIC_DRAGONS.map((d) => mergeWithWC(d, wcProducts));
 
@@ -360,7 +352,7 @@ export default function CatalogueClient({ wcProducts }: { wcProducts: WCProduct[
         </div>
       </section>
 
-      {/* WhatsApp CTA */}
+      {/* Order CTA */}
       <section style={{ padding: "clamp(2.5rem,5vw,4rem) clamp(1.5rem,5vw,4rem)", textAlign: "center" }}>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -388,21 +380,19 @@ export default function CatalogueClient({ wcProducts }: { wcProducts: WCProduct[
           transition={{ duration: 0.5, delay: 0.18 }}
           style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}
         >
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={`/checkout?product=${isBlack ? "black-dragon" : "white-dragon"}`}
             className="flex items-center gap-2 transition-all duration-300"
             style={{
               height: 50, padding: "0 28px", borderRadius: 8,
               backgroundColor: "var(--gold)", color: "var(--bg)",
-              fontSize: "0.68rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 500,
+              fontSize: "0.68rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600,
             }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
           >
-            <MessageCircle size={14} /> ORDER ON WHATSAPP
-          </a>
+            ORDER NOW
+          </Link>
           <Link
             href={`/product/${isBlack ? "black-dragon" : "white-dragon"}`}
             className="flex items-center gap-1.5 transition-all duration-300"
@@ -414,7 +404,7 @@ export default function CatalogueClient({ wcProducts }: { wcProducts: WCProduct[
             onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--gold)"; el.style.color = "var(--bg)"; }}
             onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; el.style.color = "var(--gold)"; }}
           >
-            GET YOURS <ChevronRight size={12} />
+            VIEW DETAILS <ChevronRight size={12} />
           </Link>
         </motion.div>
       </section>

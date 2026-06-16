@@ -2,9 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Leaf, Shield, Truck, Star, ChevronRight, MessageCircle } from "lucide-react";
+import { Leaf, Shield, Truck, Star, ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { site } from "@/data/site";
 
 const WHY = [
   { Icon: Leaf,   title: "Decorative Wood",         body: "Shaped and lacquered for visual impact. Each piece is designed to look premium on display." },
@@ -17,7 +16,6 @@ export default function HomeCraft() {
   const { theme } = useTheme();
   const isBlack = theme === "black-dragon";
   const glassBg = isBlack ? "rgba(14,14,14,0.72)" : "rgba(248,243,233,0.72)";
-  const whatsappHref = `https://wa.me/${site.whatsapp.replace(/\D/g, "")}`;
 
   return (
     <>
@@ -120,25 +118,23 @@ export default function HomeCraft() {
               CLAIM YOUR DRAGON
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "clamp(0.88rem,1.5vw,1rem)", lineHeight: 1.65, maxWidth: 500, margin: "0 auto 2rem" }}>
-              Free delivery across Morocco. No online payment. Order by WhatsApp or fill the contact form — your dragon will arrive safely packaged.
+              Free delivery across Morocco. No online payment. Cash on delivery — your dragon will arrive safely packaged.
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center" }}>
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/catalogue"
                 className="inline-flex items-center gap-2 transition-all duration-300"
                 style={{
                   height: 52, padding: "0 28px", borderRadius: 8,
                   backgroundColor: "var(--gold)", color: "var(--bg)",
-                  fontSize: "0.68rem", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 500,
+                  fontSize: "0.68rem", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600,
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
               >
-                <MessageCircle size={14} /> ORDER ON WHATSAPP
-              </a>
+                ORDER NOW
+              </Link>
               <Link
                 href="/catalogue"
                 className="inline-flex items-center gap-2 transition-all duration-300"
@@ -150,7 +146,7 @@ export default function HomeCraft() {
                 onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--gold)"; el.style.color = "var(--bg)"; }}
                 onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; el.style.color = "var(--gold)"; }}
               >
-                SHOP NOW <ChevronRight size={13} strokeWidth={1.5} />
+                VIEW COLLECTION <ChevronRight size={13} strokeWidth={1.5} />
               </Link>
             </div>
           </motion.div>
