@@ -49,7 +49,7 @@ const STATIC = {
 type ValidSlug = keyof typeof STATIC;
 
 /* ─── thumbnail labels ─────────────────────────────────── */
-const THUMB_LABELS = ["FULL VIEW", "KASHIRA", "HANDLE", "TSUBA", "ENGRAVING"];
+const THUMB_LABELS = ["FULL VIEW", "KASHIRA", "HANDLE", "ENGRAVING", "TSUBA"];
 
 /* ─── specifications ───────────────────────────────────── */
 const SPECS = [

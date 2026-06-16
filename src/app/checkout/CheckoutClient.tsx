@@ -407,21 +407,27 @@ function KatanaRow({
 /* ─── main component ──────────────────────────────────────────── */
 
 interface Props {
-  initialSlug: string | null;
-  initialQty:  number;
-  wcBlack:     WCProduct | null;
-  wcWhite:     WCProduct | null;
+  initialSlug:      string | null;
+  initialQty:       number;
+  wcBlack:          WCProduct | null;
+  wcWhite:          WCProduct | null;
+  initialBlackQty?: number | null;
+  initialWhiteQty?: number | null;
 }
 
-export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhite }: Props) {
+export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhite, initialBlackQty, initialWhiteQty }: Props) {
   const router     = useRouter();
   const { theme }  = useTheme();
   const { clearCart } = useCart();
   const isBlack    = theme === "black-dragon";
 
-  /* ── Katana quantities — URL param sets initial qty, other starts at 0 ── */
-  const [blackQty, setBlackQty] = useState(initialSlug === "black-dragon" ? initialQty : 0);
-  const [whiteQty, setWhiteQty] = useState(initialSlug === "white-dragon" ? initialQty : 0);
+  /* ── Katana quantities — cart params (?black=N&white=N) take priority over legacy ?product=slug&qty=N ── */
+  const [blackQty, setBlackQty] = useState(
+    initialBlackQty != null ? initialBlackQty : initialSlug === "black-dragon" ? initialQty : 0,
+  );
+  const [whiteQty, setWhiteQty] = useState(
+    initialWhiteQty != null ? initialWhiteQty : initialSlug === "white-dragon" ? initialQty : 0,
+  );
 
   /* ── Accessory data ── */
   const [accs, setAccs] = useState<AccItem[]>(INIT_ACCS);

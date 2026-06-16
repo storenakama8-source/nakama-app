@@ -6,6 +6,11 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
+const CARD_BG: Record<string, string> = {
+  "black-dragon": "/images/black-dragon-card-bg.png",
+  "white-dragon": "/images/white-dragon-card-bg.png",
+};
+
 const DRAGONS = [
   {
     slug:    "black-dragon",
@@ -180,8 +185,7 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
                 viewport={{ once: true, margin: "-30px" }}
                 transition={{ duration: 0.65, delay: i * 0.12 }}
               >
-                <Link
-                  href={`/product/${slug}`}
+                <div
                   style={{
                     display: "block",
                     position: "relative",
@@ -189,7 +193,6 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
                     overflow: "hidden",
                     border: `1px solid rgba(185,154,91,${isBlackCard ? 0.22 : 0.28})`,
                     transition: "border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease",
-                    textDecoration: "none",
                   }}
                   onMouseEnter={(e) => {
                     const el = e.currentTarget as HTMLElement;
@@ -204,10 +207,10 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
                     el.style.boxShadow = "";
                   }}
                 >
-                  {/* Card background */}
+                  {/* Card background — use dedicated card-bg image */}
                   <div style={{
                     position: "absolute", inset: 0, zIndex: 0,
-                    backgroundImage: `url(/images/hero/hero-${bg}-desktop.png)`,
+                    backgroundImage: `url(${CARD_BG[slug] ?? `/images/hero/hero-${bg}-desktop.png`})`,
                     backgroundSize: "cover", backgroundPosition: "center",
                   }} />
                   {/* Card overlay */}
@@ -267,12 +270,39 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
                       <span style={{ color: "var(--gold)", fontSize: "0.55rem", letterSpacing: "0.22em" }}>DH</span>
                     </div>
 
-                    {/* CTA */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--gold)", fontSize: "0.62rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                      VIEW DETAILS <ChevronRight size={12} strokeWidth={1.5} />
+                    {/* Dual CTA buttons */}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Link
+                        href={`/product/${slug}`}
+                        style={{
+                          flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
+                          height: 40, borderRadius: 8, textDecoration: "none",
+                          border: "1px solid rgba(185,154,91,0.5)", color: "var(--gold)",
+                          fontSize: "0.56rem", letterSpacing: "0.14em", textTransform: "uppercase",
+                          transition: "background .2s, color .2s",
+                        }}
+                        onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(185,154,91,0.15)"; }}
+                        onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; }}
+                      >
+                        VIEW DETAILS <ChevronRight size={11} strokeWidth={1.5} />
+                      </Link>
+                      <Link
+                        href={`/checkout?product=${slug}&qty=1`}
+                        style={{
+                          flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          height: 40, borderRadius: 8, textDecoration: "none",
+                          backgroundColor: "var(--gold)", color: "var(--bg)",
+                          fontSize: "0.56rem", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700,
+                          transition: "filter .2s",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+                      >
+                        ORDER NOW
+                      </Link>
                     </div>
                   </div>
-                </Link>
+                </div>
               </motion.div>
             );
           })}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Minus, Plus, Trash2, ArrowRight, LayoutGrid } from "lucide-react";
+import { ShoppingBag, Minus, Plus, Trash2, LayoutGrid } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useCart } from "@/components/providers/CartProvider";
 
@@ -19,6 +19,13 @@ export default function CartPage() {
   const cardBorder = "rgba(185,154,91,0.22)";
   const divider    = "rgba(185,154,91,0.12)";
   const grandTotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+  const blackItem = items.find((i) => i.slug === "black-dragon");
+  const whiteItem = items.find((i) => i.slug === "white-dragon");
+  const checkoutParts: string[] = [];
+  if (blackItem) checkoutParts.push(`black=${blackItem.qty}`);
+  if (whiteItem) checkoutParts.push(`white=${whiteItem.qty}`);
+  const checkoutHref = `/checkout${checkoutParts.length ? "?" + checkoutParts.join("&") : ""}`;
 
   return (
     <div style={{ minHeight: "100svh", backgroundColor: "var(--bg)", paddingTop: "76px", transition: "background .4s" }}>
@@ -123,18 +130,12 @@ export default function CartPage() {
                           </button>
                         </div>
 
-                        {/* Subtotal + CTA */}
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                          <div style={{ textAlign: "right" }}>
-                            <p style={{ fontSize: "0.44rem", letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--gold)", opacity: 0.6 }}>SUBTOTAL</p>
-                            <p className="font-heading" style={{ fontSize: "1.3rem", lineHeight: 1, color: "var(--text)" }}>
-                              {fmt(item.price * item.qty)} <span style={{ fontSize: "0.54rem", color: "var(--gold)", letterSpacing: "0.18em" }}>DH</span>
-                            </p>
-                          </div>
-                          <Link href={`/checkout?product=${item.slug}&qty=${item.qty}`}
-                            style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 16px", borderRadius: 8, backgroundColor: "var(--gold)", color: "var(--bg)", fontSize: "0.56rem", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>
-                            ORDER NOW <ArrowRight size={12} strokeWidth={2} />
-                          </Link>
+                        {/* Subtotal */}
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: "0.44rem", letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--gold)", opacity: 0.6 }}>SUBTOTAL</p>
+                          <p className="font-heading" style={{ fontSize: "1.3rem", lineHeight: 1, color: "var(--text)" }}>
+                            {fmt(item.price * item.qty)} <span style={{ fontSize: "0.54rem", color: "var(--gold)", letterSpacing: "0.18em" }}>DH</span>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -165,14 +166,25 @@ export default function CartPage() {
                     <span style={{ color: "var(--gold)", fontSize: "0.62rem", letterSpacing: "0.2em" }}>DH</span>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap", alignItems: "center" }}>
                   <button onClick={clearCart}
-                    style={{ height: 40, padding: "0 16px", borderRadius: 8, border: "1px solid rgba(185,154,91,0.3)", backgroundColor: "transparent", color: "var(--text-muted)", fontSize: "0.56rem", letterSpacing: "0.18em", textTransform: "uppercase", cursor: "pointer", opacity: 0.65 }}>
-                    CLEAR CART
+                    title="Vider le panier"
+                    style={{ width: 40, height: 40, borderRadius: 8, border: "1px solid rgba(239,68,68,0.25)", backgroundColor: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(239,68,68,0.5)", transition: "all .2s", flexShrink: 0 }}
+                    onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(239,68,68,0.08)"; el.style.borderColor = "rgba(239,68,68,0.5)"; el.style.color = "#ef4444"; }}
+                    onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; el.style.borderColor = "rgba(239,68,68,0.25)"; el.style.color = "rgba(239,68,68,0.5)"; }}
+                  >
+                    <Trash2 size={14} strokeWidth={1.5} />
                   </button>
                   <Link href="/catalogue"
                     style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 40, padding: "0 20px", borderRadius: 8, border: "1px solid rgba(185,154,91,0.45)", color: "var(--gold)", fontSize: "0.56rem", letterSpacing: "0.18em", textTransform: "uppercase", textDecoration: "none" }}>
                     <LayoutGrid size={12} /> BROWSE MORE
+                  </Link>
+                  <Link href={checkoutHref}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: 40, padding: "0 24px", borderRadius: 8, backgroundColor: "var(--gold)", color: "var(--bg)", fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+                  >
+                    Valider la commande
                   </Link>
                 </div>
               </div>
