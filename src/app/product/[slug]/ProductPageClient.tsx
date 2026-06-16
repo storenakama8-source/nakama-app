@@ -49,7 +49,7 @@ const STATIC = {
 type ValidSlug = keyof typeof STATIC;
 
 /* ─── thumbnail labels ─────────────────────────────────── */
-const THUMB_LABELS = ["FULL VIEW", "KASHIRA", "HANDLE", "ENGRAVING", "TSUBA"];
+const THUMB_LABELS = ["FULL VIEW", "HANDLE", "SCABBARD (SAYA)", "ENGRAVING", "KASHIRA"];
 
 /* ─── specifications ───────────────────────────────────── */
 const SPECS = [
@@ -173,7 +173,7 @@ export default function ProductPageClient({ slug, wcProduct }: Props) {
   ];
   const allImages = Array.from(new Set(rawUrls));
 
-  /* reorder images to match THUMB_LABELS: FULL VIEW(0), KASHIRA(1), HANDLE(2), ENGRAVING(4→3), TSUBA(3→4) */
+  /* reorder images: FULL VIEW(0), HANDLE(1), SCABBARD(2), ENGRAVING(4→3), KASHIRA(3→4) */
   const IMAGE_ORDER = [0, 1, 2, 4, 3];
   const displayImages = IMAGE_ORDER.map((i) => allImages[i]).filter((u): u is string => Boolean(u));
 
