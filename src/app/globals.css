@@ -234,37 +234,6 @@
     display: none;
   }
 
-  /* Home collection card image wrapper — mobile-first, enlarges image area */
-  .home-card-img-wrap {
-    height: clamp(300px, 74vw, 400px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-  }
-  @media (min-width: 540px) {
-    .home-card-img-wrap {
-      height: clamp(240px, 32vw, 320px);
-    }
-  }
-  @media (min-width: 768px) {
-    .home-card-img-wrap {
-      height: clamp(220px, 22vw, 300px);
-    }
-  }
-  @media (min-width: 1024px) {
-    .home-card-img-wrap {
-      height: clamp(240px, 20vw, 320px);
-    }
-  }
-
-  /* Catalogue DragonCard image fill */
-  .catalogue-card-bg {
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
-    background-position: center 20% !important;
-  }
-
   .btn-gold {
     display: inline-flex;
     align-items: center;

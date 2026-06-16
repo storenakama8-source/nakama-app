@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight, ShoppingBag, ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
-
-const CARD_BG: Record<string, string> = {
-  "black-dragon": "/images/black-dragon-card-bg.png",
-  "white-dragon": "/images/white-dragon-card-bg.png",
-};
+import { useRouter } from "next/navigation";
 
 const DRAGONS = [
   {
@@ -17,20 +13,160 @@ const DRAGONS = [
     ar:      "التنين الأسود",
     ja:      "黒い龍",
     title:   "BLACK DRAGON",
-    tagline: "POWER • MYSTERY • SHADOW",
-    desc:    "For bold interiors, collectors, anime fans, and gaming setups.",
-    bg:      "black",
+    tagline: "POWER · MYSTERY · SHADOW",
+    desc:    "Dark authority and bold aesthetics for anime lovers, gaming setups, and interiors that refuse to be ordinary.",
+    bgKey:   "black",
+    accent:  "rgba(185,154,91,0.92)" as string,
   },
   {
     slug:    "white-dragon",
     ar:      "التنين الأبيض",
     ja:      "白い龍",
     title:   "WHITE DRAGON",
-    tagline: "PURE • HONOR • LIGHT",
-    desc:    "For collectors, anime lovers, and refined room decoration.",
-    bg:      "white",
+    tagline: "PURE · HONOR · LIGHT",
+    desc:    "Refined elegance and sacred aesthetics for collectors, anime lovers, and rooms that speak with grace.",
+    bgKey:   "white",
+    accent:  "rgba(185,154,91,0.95)" as string,
   },
 ] as const;
+
+/* ── HomeCard — mirrors DragonCard from catalogue ───────── */
+
+function HomeCard({ dragon, imageUrl }: { dragon: typeof DRAGONS[number]; imageUrl: string | null }) {
+  const ref    = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { accent } = dragon;
+
+  function onEnter() {
+    if (!ref.current) return;
+    const bg = ref.current.querySelector<HTMLElement>(".hc-bg-layer");
+    if (bg) { bg.style.transform = "scale(1.06)"; bg.style.opacity = "0.85"; }
+    ref.current.style.transform = "translateY(-8px)";
+    ref.current.style.boxShadow = `0 32px 80px rgba(0,0,0,0.38), 0 0 0 1.5px ${accent}`;
+  }
+
+  function onLeave() {
+    if (!ref.current) return;
+    const bg = ref.current.querySelector<HTMLElement>(".hc-bg-layer");
+    if (bg) { bg.style.transform = "scale(1)"; bg.style.opacity = "0.72"; }
+    ref.current.style.transform = "translateY(0)";
+    ref.current.style.boxShadow = "0 8px 32px rgba(0,0,0,0.18)";
+  }
+
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onClick={() => router.push(`/product/${dragon.slug}`)}
+      style={{
+        position: "relative", overflow: "hidden", borderRadius: 20,
+        minHeight: "clamp(440px,55vh,600px)",
+        border: "1px solid rgba(185,154,91,0.22)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        transition: "transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.45s ease",
+        cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "flex-end",
+      }}
+    >
+      {/* Background image — product katana (contain) or hero fallback (cover) */}
+      <div
+        className="hc-bg-layer"
+        style={{
+          position: "absolute", inset: 0, zIndex: 0,
+          backgroundImage: `url(${imageUrl ?? `/images/hero/hero-${dragon.bgKey}-desktop.png`})`,
+          backgroundSize: imageUrl ? "contain" : "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.72,
+          transition: "transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.55s ease",
+        }}
+      />
+      {/* Gradient overlay — darkens bottom for text legibility */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 1,
+        background: "linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.72) 100%)",
+      }} />
+
+      {/* Top: Arabic label + AVAILABLE badge */}
+      <div style={{ position: "absolute", top: 24, left: 24, right: 24, zIndex: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <p className="arabic-kicker" style={{ fontSize: "clamp(1.1rem,2.2vw,1.5rem)", textShadow: "0 2px 16px rgba(0,0,0,0.6)" }}>
+          {dragon.ar}
+        </p>
+        <span style={{
+          padding: "4px 14px", borderRadius: 999,
+          border: `1px solid ${accent}`, color: accent,
+          fontSize: "0.52rem", letterSpacing: "0.22em", textTransform: "uppercase",
+          backgroundColor: "rgba(0,0,0,0.28)", backdropFilter: "blur(6px)",
+        }}>
+          AVAILABLE
+        </span>
+      </div>
+
+      {/* Bottom content */}
+      <div style={{ position: "relative", zIndex: 2, padding: "clamp(1.5rem,3vw,2rem)" }}>
+        <p style={{ color: accent, fontSize: "0.68rem", letterSpacing: "0.36em", textTransform: "uppercase", marginBottom: "0.35rem", opacity: 0.82 }}>
+          {dragon.ja}
+        </p>
+        <h2 className="font-heading" style={{
+          fontSize: "clamp(2rem,4.5vw,3.2rem)", lineHeight: 0.9, letterSpacing: "0.03em",
+          color: "#ffffff", textShadow: "0 2px 24px rgba(0,0,0,0.5)",
+          marginBottom: "0.6rem",
+        }}>
+          {dragon.title}
+        </h2>
+        <p style={{ color: accent, fontSize: "0.55rem", letterSpacing: "0.24em", marginBottom: "0.85rem" }}>
+          {dragon.tagline}
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1.5rem", maxWidth: 400 }}>
+          {dragon.desc}
+        </p>
+
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: "1.25rem" }}>
+          <span className="font-heading" style={{ fontSize: "2rem", color: "#ffffff", letterSpacing: "0.02em" }}>
+            1,399
+          </span>
+          <span style={{ color: accent, fontSize: "0.58rem", letterSpacing: "0.22em" }}>DH</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link
+            href={`/product/${dragon.slug}`}
+            className="flex items-center gap-2 transition-all duration-300"
+            style={{
+              height: 46, padding: "0 22px", borderRadius: 8,
+              backgroundColor: accent, color: "#0a0a0a",
+              fontSize: "0.62rem", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600,
+              textDecoration: "none",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            VIEW DETAILS <ArrowRight size={12} strokeWidth={2} />
+          </Link>
+          <Link
+            href={`/checkout?product=${dragon.slug}`}
+            className="flex items-center gap-2 transition-all duration-300"
+            style={{
+              height: 46, padding: "0 18px", borderRadius: 8,
+              border: `1px solid ${accent}`, color: "#ffffff",
+              fontSize: "0.62rem", letterSpacing: "0.16em", textTransform: "uppercase",
+              backgroundColor: "rgba(255,255,255,0.08)", backdropFilter: "blur(6px)",
+              textDecoration: "none",
+            }}
+            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = accent; el.style.color = "#0a0a0a"; }}
+            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(255,255,255,0.08)"; el.style.color = "#ffffff"; }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ShoppingBag size={12} /> ORDER NOW
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main section ────────────────────────────────────────── */
 
 interface Props {
   images?:   { "black-dragon"?: string | null; "white-dragon"?: string | null };
@@ -79,42 +215,36 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
       {/* ── Atmospheric background ── */}
       {showHero && (
         <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
-          {/* Top gold glow */}
           <div style={{
             position: "absolute", inset: 0,
             background: isBlack
               ? "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(185,154,91,0.10) 0%, transparent 65%)"
               : "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(185,154,91,0.15) 0%, transparent 65%)",
           }} />
-          {/* Bottom fade */}
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0, height: "45%",
             background: isBlack
               ? "linear-gradient(180deg, transparent, rgba(5,5,5,0.75))"
               : "linear-gradient(180deg, transparent, rgba(247,242,232,0.75))",
           }} />
-          {/* Left vignette */}
           <div style={{
             position: "absolute", left: 0, top: 0, bottom: 0, width: "28%",
             background: isBlack
               ? "linear-gradient(90deg, rgba(5,5,5,0.55), transparent)"
               : "linear-gradient(90deg, rgba(247,242,232,0.40), transparent)",
           }} />
-          {/* Right vignette */}
           <div style={{
             position: "absolute", right: 0, top: 0, bottom: 0, width: "28%",
             background: isBlack
               ? "linear-gradient(270deg, rgba(5,5,5,0.55), transparent)"
               : "linear-gradient(270deg, rgba(247,242,232,0.40), transparent)",
           }} />
-          {/* Mid atmospheric depth — simulates smoke/cloud */}
           <div style={{
             position: "absolute", inset: 0,
             background: isBlack
               ? "radial-gradient(ellipse 55% 38% at 20% 65%, rgba(185,154,91,0.035) 0%, transparent 70%), radial-gradient(ellipse 45% 32% at 80% 38%, rgba(120,90,40,0.05) 0%, transparent 70%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(185,154,91,0.025) 0%, transparent 70%)"
               : "radial-gradient(ellipse 55% 38% at 20% 65%, rgba(185,154,91,0.07) 0%, transparent 70%), radial-gradient(ellipse 45% 32% at 80% 38%, rgba(185,154,91,0.06) 0%, transparent 70%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(185,154,91,0.05) 0%, transparent 70%)",
           }} />
-          {/* Subtle noise grain */}
           <div style={{
             position: "absolute", inset: 0,
             backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E\")",
@@ -122,7 +252,6 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
             opacity: isBlack ? 0.045 : 0.03,
             mixBlendMode: "overlay",
           }} />
-          {/* Corner vignette */}
           <div style={{
             position: "absolute", inset: 0,
             background: isBlack
@@ -165,144 +294,24 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
         </motion.div>
 
         {/* Cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-            gap: "clamp(1rem,2.5vw,2rem)",
-            maxWidth: 1040,
-            margin: "0 auto",
-          }}
-        >
-          {DRAGONS.map(({ slug, ar, ja, title, tagline, desc, bg }, i) => {
-            const imgSrc = images[slug] ?? clientImages[slug] ?? null;
-            const isBlackCard = bg === "black";
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 520px), 1fr))",
+          gap: "clamp(1.25rem,2.5vw,2rem)",
+          maxWidth: 1160,
+          margin: "0 auto",
+        }}>
+          {DRAGONS.map((dragon, i) => {
+            const imageUrl = images[dragon.slug] ?? clientImages[dragon.slug] ?? null;
             return (
               <motion.div
-                key={slug}
-                initial={{ opacity: 0, y: 24 }}
+                key={dragon.slug}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-30px" }}
-                transition={{ duration: 0.65, delay: i * 0.12 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.75, ease: "easeOut", delay: i * 0.14 }}
               >
-                <div
-                  style={{
-                    display: "block",
-                    position: "relative",
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    border: `1px solid rgba(185,154,91,${isBlackCard ? 0.22 : 0.28})`,
-                    transition: "border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderColor = "rgba(185,154,91,0.65)";
-                    el.style.transform = "translateY(-6px)";
-                    el.style.boxShadow = "0 24px 60px rgba(0,0,0,0.36)";
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderColor = `rgba(185,154,91,${isBlackCard ? 0.22 : 0.28})`;
-                    el.style.transform = "";
-                    el.style.boxShadow = "";
-                  }}
-                >
-                  {/* Card background — use dedicated card-bg image */}
-                  <div style={{
-                    position: "absolute", inset: 0, zIndex: 0,
-                    backgroundImage: `url(${CARD_BG[slug] ?? `/images/hero/hero-${bg}-desktop.png`})`,
-                    backgroundSize: "cover", backgroundPosition: "center",
-                  }} />
-                  {/* Card overlay */}
-                  <div style={{
-                    position: "absolute", inset: 0, zIndex: 1,
-                    backgroundColor: isBlack
-                      ? (isBlackCard ? "rgba(4,4,4,0.74)" : "rgba(4,4,4,0.70)")
-                      : (isBlackCard ? "rgba(4,4,4,0.72)" : "rgba(248,243,233,0.78)"),
-                  }} />
-                  {/* Atmospheric depth overlay */}
-                  <div style={{
-                    position: "absolute", inset: 0, zIndex: 1,
-                    background: isBlackCard
-                      ? "radial-gradient(ellipse 80% 60% at 50% 30%, rgba(185,154,91,0.06) 0%, transparent 70%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.45) 100%)"
-                      : "radial-gradient(ellipse 80% 60% at 50% 30%, rgba(185,154,91,0.09) 0%, transparent 70%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.18) 100%)",
-                  }} />
-
-                  {/* Content */}
-                  <div style={{ position: "relative", zIndex: 2, padding: "clamp(1.25rem,3vw,2rem)" }}>
-                    {/* Labels */}
-                    <div style={{ marginBottom: "0.6rem" }}>
-                      <p className="arabic-kicker" style={{ fontSize: "clamp(1.1rem,2vw,1.5rem)", marginBottom: "0.15rem" }}>{ar}</p>
-                      <p style={{ color: "var(--gold)", opacity: 0.65, fontSize: "0.65rem", letterSpacing: "0.34em", textTransform: "uppercase" }}>{ja}</p>
-                    </div>
-
-                    {/* Product image — DOMINANT */}
-                    <div className="home-card-img-wrap">
-                      {imgSrc ? (
-                        <img
-                          src={imgSrc}
-                          alt={title}
-                          style={{
-                            maxHeight: "100%",
-                            maxWidth: "90%",
-                            width: "auto",
-                            objectFit: "contain",
-                            filter: isBlackCard
-                              ? "drop-shadow(0 12px 32px rgba(0,0,0,0.75)) drop-shadow(0 0 18px rgba(185,154,91,0.15))"
-                              : "drop-shadow(0 10px 28px rgba(95,65,30,0.32)) drop-shadow(0 0 20px rgba(185,154,91,0.22))",
-                          }}
-                        />
-                      ) : (
-                        <div style={{ width: 2, height: "65%", borderRadius: 1, background: `rgba(185,154,91,${isBlack ? 0.07 : 0.11})` }} />
-                      )}
-                    </div>
-
-                    {/* Title + tagline */}
-                    <h3 className="font-heading" style={{ fontSize: "clamp(1.6rem,3.5vw,2.2rem)", lineHeight: 0.92, color: "var(--text)", marginBottom: "0.3rem", letterSpacing: "0.04em" }}>{title}</h3>
-                    <p style={{ color: "var(--gold)", fontSize: "0.54rem", letterSpacing: "0.2em", marginBottom: "0.7rem" }}>{tagline}</p>
-
-                    {/* Description — hidden on mobile to prioritize image */}
-                    <p className="hidden sm:block" style={{ color: "var(--text-muted)", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1rem" }}>{desc}</p>
-
-                    {/* Price */}
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: "1rem" }}>
-                      <span className="font-heading" style={{ fontSize: "clamp(1.5rem,3vw,1.9rem)", color: "var(--text)", lineHeight: 1 }}>1,399</span>
-                      <span style={{ color: "var(--gold)", fontSize: "0.55rem", letterSpacing: "0.22em" }}>DH</span>
-                    </div>
-
-                    {/* Dual CTA buttons */}
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Link
-                        href={`/product/${slug}`}
-                        style={{
-                          flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
-                          height: 40, borderRadius: 8, textDecoration: "none",
-                          border: "1px solid rgba(185,154,91,0.5)", color: "var(--gold)",
-                          fontSize: "0.56rem", letterSpacing: "0.14em", textTransform: "uppercase",
-                          transition: "background .2s, color .2s",
-                        }}
-                        onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "rgba(185,154,91,0.15)"; }}
-                        onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; }}
-                      >
-                        VIEW DETAILS <ChevronRight size={11} strokeWidth={1.5} />
-                      </Link>
-                      <Link
-                        href={`/checkout?product=${slug}&qty=1`}
-                        style={{
-                          flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
-                          height: 40, borderRadius: 8, textDecoration: "none",
-                          backgroundColor: "var(--gold)", color: "var(--bg)",
-                          fontSize: "0.56rem", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700,
-                          transition: "filter .2s",
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.1)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
-                      >
-                        ORDER NOW
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <HomeCard dragon={dragon} imageUrl={imageUrl} />
               </motion.div>
             );
           })}
@@ -323,6 +332,7 @@ export default function HomeCollection({ images = {}, showHero = false }: Props)
               height: 48, padding: "0 28px", borderRadius: 8,
               border: "1px solid rgba(185,154,91,0.4)", color: "var(--gold)",
               fontSize: "0.66rem", letterSpacing: "0.18em", textTransform: "uppercase",
+              textDecoration: "none",
             }}
             onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "var(--gold)"; el.style.color = "var(--bg)"; }}
             onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = "transparent"; el.style.color = "var(--gold)"; }}
