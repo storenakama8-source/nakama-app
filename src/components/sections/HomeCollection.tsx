@@ -68,13 +68,13 @@ function HomeCard({ dragon, imageUrl }: { dragon: typeof DRAGONS[number]; imageU
         cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "flex-end",
       }}
     >
-      {/* Background image — product katana (contain) or hero fallback (cover) */}
+      {/* Background — dedicated card-bg image */}
       <div
         className="hc-bg-layer"
         style={{
           position: "absolute", inset: 0, zIndex: 0,
-          backgroundImage: `url(${imageUrl ?? `/images/hero/hero-${dragon.bgKey}-desktop.png`})`,
-          backgroundSize: imageUrl ? "contain" : "cover",
+          backgroundImage: `url(/images/${dragon.slug}-card-bg.png)`,
+          backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           opacity: 0.72,
