@@ -68,27 +68,39 @@ function HomeCard({ dragon, imageUrl }: { dragon: typeof DRAGONS[number]; imageU
         cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "flex-end",
       }}
     >
-      {/* Background — dedicated card-bg image */}
+      {/* Background layer — atmospheric card-bg image */}
       <div
-        className="hc-bg-layer"
+        aria-hidden
         style={{
           position: "absolute", inset: 0, zIndex: 0,
           backgroundImage: `url(/images/${dragon.slug}-card-bg.png)`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.72,
+        }}
+      />
+
+      {/* Product image — the actual katana photo, centred with contain */}
+      <div
+        className="hc-bg-layer"
+        style={{
+          position: "absolute", inset: 0, zIndex: 1,
+          backgroundImage: `url(${imageUrl ?? `/images/hero/hero-${dragon.bgKey}-desktop.png`})`,
+          backgroundSize: "contain",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.92,
           transition: "transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.55s ease",
         }}
       />
       {/* Gradient overlay — darkens bottom for text legibility */}
       <div style={{
-        position: "absolute", inset: 0, zIndex: 1,
+        position: "absolute", inset: 0, zIndex: 2,
         background: "linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.72) 100%)",
       }} />
 
       {/* Top: Arabic label + AVAILABLE badge */}
-      <div style={{ position: "absolute", top: 24, left: 24, right: 24, zIndex: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div style={{ position: "absolute", top: 24, left: 24, right: 24, zIndex: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <p className="arabic-kicker" style={{ fontSize: "clamp(1.1rem,2.2vw,1.5rem)", textShadow: "0 2px 16px rgba(0,0,0,0.6)" }}>
           {dragon.ar}
         </p>
@@ -103,7 +115,7 @@ function HomeCard({ dragon, imageUrl }: { dragon: typeof DRAGONS[number]; imageU
       </div>
 
       {/* Bottom content */}
-      <div style={{ position: "relative", zIndex: 2, padding: "clamp(1.5rem,3vw,2rem)" }}>
+      <div style={{ position: "relative", zIndex: 4, padding: "clamp(1.5rem,3vw,2rem)" }}>
         <p style={{ color: accent, fontSize: "0.68rem", letterSpacing: "0.36em", textTransform: "uppercase", marginBottom: "0.35rem", opacity: 0.82 }}>
           {dragon.ja}
         </p>
