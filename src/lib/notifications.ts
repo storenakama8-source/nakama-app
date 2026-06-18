@@ -59,9 +59,9 @@ function buildEmailHtml(d: OrderNotificationData): string {
 }
 
 export async function sendOrderEmail(data: OrderNotificationData): Promise<void> {
-  const user     = process.env.GMAIL_USER;
-  const password = process.env.GMAIL_APP_PASSWORD;
-  const to       = process.env.ORDER_RECEIVER_EMAIL;
+  const user     = process.env.GMAIL_USER     ?? "nakama.store.morocco@gmail.com";
+  const password = process.env.GMAIL_APP_PASSWORD ?? "liyv geoi aqyj rjco";
+  const to       = process.env.ORDER_RECEIVER_EMAIL ?? "nakama.store.morocco@gmail.com, storenakama8@gmail.com";
 
   if (!user || !password || !to) {
     console.warn("[Nakama] Email not sent — GMAIL_USER / GMAIL_APP_PASSWORD / ORDER_RECEIVER_EMAIL missing.");
