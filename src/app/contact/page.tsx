@@ -194,7 +194,7 @@ export default function ContactPage() {
 
             {/* Email */}
             <a
-              href="mailto:contact@nakamastore.ma"
+              href="mailto:nakama.store.morocco@gmail.com"
               className="flex items-center gap-4 transition-all duration-300"
               style={{
                 background: glassBg,
@@ -214,7 +214,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <p style={{ color: "var(--text)", fontSize: "0.9rem", fontWeight: 500, marginBottom: "0.2rem" }}>Email</p>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>contact@nakamastore.ma</p>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>nakama.store.morocco@gmail.com</p>
               </div>
               <ChevronRight size={14} style={{ color: "var(--gold)", marginLeft: "auto", opacity: 0.6 }} />
             </a>

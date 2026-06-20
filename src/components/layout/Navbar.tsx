@@ -32,8 +32,8 @@ const CONTACTS = [
   },
   {
     icon: Mail,
-    label: "contact@nakamastore.ma",
-    href: "mailto:contact@nakamastore.ma",
+    label: "nakama.store.morocco@gmail.com",
+    href: "mailto:nakama.store.morocco@gmail.com",
     external: false,
   },
 ];
