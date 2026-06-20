@@ -61,7 +61,6 @@ export default function AboutPage() {
             ar="قصة المجموعة"
             ja="物語"
             en={"STORY OF\nDRAGON COLLECTION"}
-            sub="Nakama brings Japanese-inspired decorative katanas to collectors, anime lovers, and anyone who wants to elevate their space with a piece of visual art."
             size="lg"
           />
         </div>
