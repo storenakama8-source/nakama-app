@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { products, ProductId } from "@/data/products";
+import { site } from "@/data/site";
 
 interface Props {
   productId: ProductId;
@@ -135,7 +136,7 @@ export default function ProductShowcase({ productId }: Props) {
                 Order {product.name}
               </Link>
               <Link
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
+                href={`https://wa.me/${site.whatsapp.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`px-8 py-3 border ${borderClass} ${subTextClass} text-xs tracking-widest uppercase hover:${textClass} transition-all duration-300 text-center`}
