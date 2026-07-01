@@ -27,6 +27,11 @@ export const GET_PRODUCTS = /* GraphQL */ `
           regularPrice
           salePrice
         }
+        ... on VariableProduct {
+          price
+          regularPrice
+          salePrice
+        }
       }
     }
   }
@@ -56,6 +61,11 @@ export const GET_PRODUCT_BY_SLUG = /* GraphQL */ `
         }
       }
       ... on SimpleProduct {
+        price
+        regularPrice
+        salePrice
+      }
+      ... on VariableProduct {
         price
         regularPrice
         salePrice

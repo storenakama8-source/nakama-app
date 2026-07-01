@@ -56,7 +56,7 @@ export function formatPrice(raw: string | null | undefined): string | null {
 
 /* ── Disk cache (server-side only) ───────────────────────── */
 
-const CACHE_TTL = 24 * 60 * 60 * 1000;
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 function getCachePath(): string {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -118,7 +118,7 @@ const ACCESSORY_FALLBACK: AccessoryProduct[] = [
 
 export async function getProducts(): Promise<WCProduct[]> {
   try {
-    const data = await fetchGraphQL<ProductsData>(GET_PRODUCTS, undefined, 3600);
+    const data = await fetchGraphQL<ProductsData>(GET_PRODUCTS, undefined, 1800);
     const products = data.products?.nodes ?? [];
     if (products.length > 0) writeCache(products);
     return products;
@@ -146,7 +146,7 @@ export async function getAccessoriesProducts(): Promise<AccessoryProduct[]> {
       databaseId: p.databaseId,
       slug:       p.slug,
       name:       p.name,
-      price:      parseInt((formatPrice(p.price) ?? "99").replace(/[^0-9]/g, ""), 10) || 99,
+      price:      parseInt((formatPrice(p.price) ?? "0").replace(/[^0-9]/g, ""), 10) || 0,
       image:      p.image?.sourceUrl ?? null,
     }));
   } catch {
@@ -156,7 +156,7 @@ export async function getAccessoriesProducts(): Promise<AccessoryProduct[]> {
 
 export async function getProductBySlug(slug: string): Promise<WCProduct | null> {
   try {
-    const data = await fetchGraphQL<ProductData>(GET_PRODUCT_BY_SLUG, { slug }, 3600);
+    const data = await fetchGraphQL<ProductData>(GET_PRODUCT_BY_SLUG, { slug }, 1800);
     return data.product ?? null;
   } catch (err) {
     const msg = String(err).toLowerCase();

@@ -16,7 +16,7 @@ export async function fetchGraphQL<T = unknown>(
   const url = GRAPHQL_URL;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 2000);
+  const timer = setTimeout(() => controller.abort(), 10000);
 
   let res: Response;
   try {
