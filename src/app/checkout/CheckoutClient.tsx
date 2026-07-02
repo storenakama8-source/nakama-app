@@ -491,7 +491,7 @@ export default function CheckoutClient({ initialSlug, initialQty, wcBlack, wcWhi
             databaseId: match.databaseId || fallback.databaseId,
             slug:       fallback.slug,
             name:       fallback.name,
-            price:      Math.round(parseFloat((match.price ?? "0").replace(/[^\d.]/g, "")) || 0),
+            price:      parseInt(formatPrice(match.price) ?? "0", 10) || 0,
             image:      match.image?.sourceUrl ?? fallback.image,
           };
         }
